@@ -14,7 +14,7 @@ __LOGS_OUTDIR__       = "%s/logs" % WORKDIR
 
 rule all:
   input:
-    cluster = "%s/mcl.out" % __MCL_OUTDIR__
+    cluster = expand("%s/mcl_{ival}.out" % __MCL_OUTDIR__, ival=[1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0])
 
 
 ###############################################################################

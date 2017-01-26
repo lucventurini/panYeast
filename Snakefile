@@ -8,7 +8,11 @@ tconfig={
   "augustus_species" : "saccharomyces_cerevisiae_S288C",
   "augustus_params"  : "",
 
-  "mci_params" : "-I 1.5", #Same as Roary
+  "diamond_params" : "-k 300 --no-self-hits",
+
+  "orthagogue_params" : "-t 0 -p 1 -s \'|\' -u",
+
+  "mci_params" : "", #Same as Roary
 }
 
 
