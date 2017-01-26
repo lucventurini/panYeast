@@ -1,21 +1,34 @@
 package panalysis {
 
-  class mclClust(mciFile: String, protMapFile: String) {
-    val (dim_gene, dim_cluster, clusters) = mciReader.readMCLClusters(mciFile)
-    val prots    = readProtMapFile(protMapFile)
+class mclClust(mciFile: String, protMap:Map[Int,Protein]) {
+  val (dim_gene, dim_cluster, clusters) = mciReader.readMCLClusters(mciFile, protMap)
+  val paraClusters = clusters.map(clusterParalogs)
 
-    // read the ProteinMapFile
-    ///////////////////////////////////////////////////////////////////////////
-    def readProtMapFile(protMapFile: String) = {
-      io.Source.fromFile(protMapFile).getLines.map(line => line.stripLineEnd.split('\t')).map{case Array(id: String, prot: String) => (id.toInt, prot)}.toMap
-    }
+  ///////////////////////////////////////////////////////////////////////////
 
-    ///////////////////////////////////////////////////////////////////////////
-
-    def clusterParalogs(clusterID:Int) = {
-      
-    }    
-
+  def clusterParalogsID(clusterID:Int) = {
+    clusterParalogs(clusters(clusterID))
   }
+
+  def clusterParalogs(clust: Array[Protein]) = {
+    clust.foldLeft(Array[Array[Protein]]()){
+      (arr, currProt) => {
+        if (arr.length == 0) {
+          Array(Array(currProt))
+        } else {
+          val lastProt = arr.last.last
+          if (lastProt.taxa == currProt.taxa) {
+            arr.dropRight(1) :+ (arr.last :+ currProt)
+          } else {
+            arr :+ Array(currProt)
+          }
+        }
+      }
+    }
+  }
+
+  ///////////////////////////////////////////////////////////////////////////
+
+}
 
 }

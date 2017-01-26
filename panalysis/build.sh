@@ -7,7 +7,7 @@ scala="`which scala` -classpath $scala_classpath"
 
 echo "Building panalysis..."
 mkdir -p panalysis
-$scalac -d ./ mainClass.scala mciReader.scala mclClust.scala
+$scalac -d ./ mainClass.scala mciReader.scala mclClust.scala protein.scala Fasta.scala utils.scala
 
 echo "Constructing jar..."
 cat > panalysis.mf << EOF
