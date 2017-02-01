@@ -26,7 +26,7 @@ object mciReader {
           if (!(line contains ")")) {
             clusterline += line
             if (line contains "$") {
-              clusters += clusterline.filterNot("\n$\t".toSet).split(' ').filter(x => x.length > 0)
+              clusters += clusterline.filterNot("\n$".toSet).split("[ \t]+").filter(x => x.length > 0)
               clusterline = ""
             }
           }
@@ -40,7 +40,7 @@ object mciReader {
 
   ///////////////////////////////////////////////////////////////////////////
 
-  def readMCLClusters(clustFile: String, proteinMap:Map[Int,Protein]) = {
+  def readMCLClusters(clustFile: String, proteinMap:Array[Protein]) = {
 
     val (dim_gene, dim_cluster, clusterlines) = readMCLLines(clustFile)
     val clusters = clusterlines.map(line => line.drop(1).map(x => x.toInt).toArray.map( x => proteinMap(x)))
@@ -52,14 +52,25 @@ object mciReader {
 
   def readMCLNetwork(netFile:String) = {
 
-    val (dim_nodes, dim_dup, netLines) = readMCLLines(netFile)
-    val network = netLines.map{ arr =>
+    val (dimNodes, dimDup, netLines) = readMCLLines(netFile)
+    var network = Array.fill[Double](dimNodes.toInt, dimNodes.toInt) { 0.0 }
+    var count   = 0
+
+    netLines.map{ arr =>
       val outNode = arr(0).toInt
-      val edges  = arr.drop(1).map(edge => edge.split(':')).map{ case Array(inNode:String, weight:String) => (outNode, inNode.toInt, weight.toFloat)}
-
-      edges ++ edges.map{ case (in, out, weight) => (out, in, weight)}
-    }.foldLeft(Array[(Int,Int,Float)]())(_ ++ _)
-
+      count += 1
+      print("\rProcessed %d clusters".format(count))
+      arr.drop(1).map(edge => edge.split(':')).map{ case Array(inNode:String, weight:String) => (outNode, inNode.toInt, weight.toFloat)}
+    }.foreach{ x => x.foreach{
+        case (outNode, inNode, weight) => {
+          println("%d -> %d: %f".format(outNode, inNode, weight))
+          network(outNode)(inNode) = weight
+          network(inNode)(outNode) = weight
+        }
+      }
+    }
+    //.foldLeft(Array[(Int,Int,Float)]())(_ ++ _)
+    network
   }
 
   ///////////////////////////////////////////////////////////////////////////
