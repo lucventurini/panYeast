@@ -22,6 +22,12 @@ object Fasta {
 
   /////////////////////////////////////////////////////////////////////////////
 
+  def readMap(fn: String): Map[String,Entry] = {
+    read(fn).map( e => (e.description, e)).toMap
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
   def fromString( input: String ): List[Entry] =
     Parser.parse(input)
 
@@ -50,7 +56,7 @@ object Fasta {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  def print(fastaList: List[Entry]) = {
+  def print(fastaList: Iterable[Entry]) = {
     def printSingleFasta(fastaSingle: Entry) = {
       println('>' + fastaSingle.description)
       println(fastaSingle.sequence)

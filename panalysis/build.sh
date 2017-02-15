@@ -1,13 +1,13 @@
 #!/bin/bash
 
-scala_classpath="./:./lib:./lib/tsne-2.3.0.jar"
+scala_classpath="./:./lib:./lib/tsne-2.3.0.jar:./lib/breeze-0.13.jar:./lib/scala-parser-combinators_2.12-1.0.4.jar:./lib/jebl.jar"
 
 scalac="`which scalac` -classpath $scala_classpath"
 scala="`which scala` -classpath $scala_classpath"
 
 echo "Building PANalysis..."
 mkdir -p panalysis
-$scalac -d ./ mainClass.scala mciReader.scala mclClust.scala protein.scala Fasta.scala utils.scala tsne.scala
+$scalac -d ./ ActionObject.scala Clustering.scala ClusterTypes.scala Fasta.scala GetClusterFastas.scala mainClass.scala MCINetwork.scala MCIReader.scala Protein.scala ResolveParalogs.scala Test.scala TSNE.scala Utils.scala ActionTemplate.scala
 
 echo "Constructing jar..."
 cat > panalysis.mf << EOF

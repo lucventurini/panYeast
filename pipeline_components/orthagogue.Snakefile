@@ -2,7 +2,8 @@ rule orthagogue:
   input:
     aln = rules.diamond_align.output.cmp
   output:
-    mci = "%s/orthologs.mci" % __ORTHAGOGUE_OUTDIR__
+    mci  = "%s/orthologs.mci" % __ORTHAGOGUE_OUTDIR__,
+    pmap = "%s/proteins.map" % __ORTHAGOGUE_OUTDIR__
   threads: 8
   params:
     rule_outdir = __ORTHAGOGUE_OUTDIR__,

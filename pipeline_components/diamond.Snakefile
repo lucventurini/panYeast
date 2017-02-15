@@ -1,6 +1,6 @@
 rule merge_protein_files:
   input:
-    fa = expand("%s/augustus.{asm}.prots.fa" % __AUGUSTUS_OUTDIR__, asm=config["data"].keys())
+    fa = expand("%s/prots.{asm}.fa" % __PROTS_OUTDIR__, asm=config["data"].keys())
   output:
     fa = "%s/input_fasta.fa" % __DIAMOND_OUTDIR__
   params:
@@ -30,10 +30,11 @@ rule diamond_align:
   params:
     rule_outdir = __DIAMOND_OUTDIR__,
     params = tconfig["diamond_params"]
-  threads: 8
+  threads: 20
   benchmark: "%s/diamond_align.log" % __LOGS_OUTDIR__
   shell: """
-    diamond blastp -d {params.rule_outdir}/db {params.params} -q {input.fa} -o {output.cmp}
+    mkdir -p {params.rule_outdir}/diamond_temp
+    diamond blastp -d {params.rule_outdir}/db {params.params} -p {threads} -t {params.rule_outdir}/diamond_temp -q {input.fa} -o {output.cmp}
   """
 
 ## Remove hits that are in the same species

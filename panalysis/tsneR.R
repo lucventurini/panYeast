@@ -12,9 +12,13 @@ tsnePlot <- function(inFile, outFile) {
 
 }
 
-tsnePlot("tsneCount.mat", "tsneCount.pdf")
-tsnePlot("tsneBinary.mat", "tsneBinary.pdf")
+args = commandArgs(trailingOnly=TRUE)
 
-tsnePlot("tsneCountSpecies.mat", "tsneCountSpecies.pdf")
-tsnePlot("tsneBinarySpecies.mat", "tsneBinarySpecies.pdf")
+tsnePlot(args[1], args[2])
+
+#tsnePlot("tsneCount.mat", "tsneCount.pdf")
+#tsnePlot("tsneBinary.mat", "tsneBinary.pdf")
+
+#tsnePlot("tsneCountSpecies.mat", "tsneCountSpecies.pdf")
+#tsnePlot("tsneBinarySpecies.mat", "tsneBinarySpecies.pdf")
 

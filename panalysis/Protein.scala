@@ -13,19 +13,20 @@ case class Protein(taxa:String, pid:Int, uniqueID:Int) {
 object Protein {
 
   var delim = "|g"
+  var regex_delim = "\\|g"
 
   /////////////////////////////////////////////////////////////////////////////
 
   def apply(str:String): Protein = {
-    val values = str.split('|')
-    Protein(values(0), values(1).drop(1).toInt, -1)
+    val values = str.split(regex_delim)
+    Protein(values(0), values(1).toInt, -1)
   }
 
   /////////////////////////////////////////////////////////////////////////////
 
   def apply(str:String, uniqueID:Int): Protein = {
-    val values = str.split('|')
-    Protein(values(0), values(1).drop(1).toInt, uniqueID)
+    val values = str.split(regex_delim)
+    Protein(values(0), values(1).toInt, uniqueID)
   }
 
   /////////////////////////////////////////////////////////////////////////////
