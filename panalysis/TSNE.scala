@@ -13,9 +13,9 @@ object TSNE extends ActionObject {
     val clusteringFile = args(2)
     val outFile        = args(3)
 
-    val protMap = Utils.readProtMapFile(protMapFile)
+    val protMap     = ProtMap.read(protMapFile)
     val intClusters = MCIReader.readClustering(clusteringFile)._3
-    val clustering = new Clustering(intClusters, protMap)
+    val clustering  = new Clustering(intClusters, protMap)
 
     val matrix = action.toLowerCase match {
       case "binary"        => clustering.tsneMatrixBinary
@@ -24,9 +24,12 @@ object TSNE extends ActionObject {
       case "speciesCount"  => clustering.tsneMatrixParalogCounts.transpose
     }
 
+    val isCore = clustering.getCoreLabels.map(x => x.toDouble).toArray
+    val counts = clustering.getCountLabels.map(x => x.toDouble).toArray
+    val labels = Array(isCore, counts).transpose
     val result = run(matrix)
 
-    Utils.doubleMatrixToFile(result, outFile, "\t")
+    Utils.doubleMatrixToFile(Utils.hcatMatrix(result,labels), outFile, "\t")
     
   }
 
@@ -39,14 +42,16 @@ object TSNE extends ActionObject {
     val tsne        = new ParallelBHTsne()
 
     val result = tsne.tsne(matrix, 2, initialDims, perplexity, maxIter)
-    println(MatrixOps.doubleArrayToPrintString(result, ", "))
+    //println(MatrixOps.doubleArrayToPrintString(result, ", "))
     result
   }
 
   /////////////////////////////////////////////////////////////////////////////
 
   override def usage = {
-    println("OMG HELP")
+    println("tsne <action> <protMapFile> <clusteringFile> <outFile>")
+    println("")
+    println("  action : binary | count | speciesBinary | speciesCount")
   }
 }
 

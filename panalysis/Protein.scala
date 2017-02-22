@@ -43,6 +43,12 @@ object Protein {
 
   /////////////////////////////////////////////////////////////////////////////
 
+  def isProteinString(str: String) = {
+    // Maybe need to extend further?
+    val strsplit = str.split(regex_delim)
+    strsplit.length == 2
+  }
+
 }
 
 

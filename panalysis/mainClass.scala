@@ -5,8 +5,9 @@ object mainClass {
   val ops = Map("tsne"             -> TSNE,            // java -Xms20G -jar panalysis.jar tsne Count ../run/orthagogue/proteins.map ../run/mcl/mcl_1.3.out  tsneCount.mat
                 "getClusterFastas" -> GetClusterFastas, // java -Xms20g -jar panalysis.jar getClusterFastas singlecopycore ../run/diamond/input_fasta.fa ../run/orthagogue/proteins.map ../run/mcl/mcl_1.4.out run/clusterFastas/test.
                 "resolveParalogs"  -> ResolveParalogs,
-                "actiontemplate"   -> ActionTemplate
-               )
+                "actionTemplate"   -> ActionTemplate,
+                "protMapCheck"     -> ProtMapCheck
+               ).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////
 

@@ -4,23 +4,6 @@ import java.io._
 
 object Utils {
 
-  def readProtMapFile(protMapFile: String) = {
-    io.Source.fromFile(protMapFile).getLines.map(line => line.stripLineEnd.split('\t')).map{case Array(id: String, prot: String) => Protein(prot, id.toInt)}.toArray.sortWith( (p1,p2) => p1.uniqueID < p2.uniqueID)
-  }
-
-  ///////////////////////////////////////////////////////////////////////////
-
-  def protMapTaxa(protMap: Array[Protein]) = {
-    protMap.foldLeft(Array(Protein("fakeSpecies|g0"))){ (arr, currProt) =>
-      val lastProt = arr.last
-      if (lastProt.taxa == currProt.taxa) {
-        arr
-      } else {
-        arr :+ currProt
-      }
-    }.map(p => p.taxa).drop(1)
-  }
-
   ///////////////////////////////////////////////////////////////////////////
 
   def doubleMatrixToFile(mat: Array[Array[Double]], outFile:String, sep:String) = {

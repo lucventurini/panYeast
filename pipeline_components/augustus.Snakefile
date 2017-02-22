@@ -4,7 +4,7 @@
 
 rule augustus_gff:
   input:
-    asm = lambda wildcards: condif["dataprefix"] + '/' + config["data"][wildcards.asm]["fasta"]
+    asm = lambda wildcards: config["dataprefix"] + '/' + config["data"][wildcards.asm]["fasta"]
   output:
     gff = "%s/augustus_gff.{asm}.gff" % __AUGUSTUS_OUTDIR__
   threads: 4

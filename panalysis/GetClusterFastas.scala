@@ -1,5 +1,7 @@
 package panalysis {
 
+import java.io._
+
 object GetClusterFastas extends ActionObject {
 
   override val description = "Given a fasta file and a cluster file, extract one multiFasta file for each cluster"
@@ -11,17 +13,8 @@ object GetClusterFastas extends ActionObject {
     val clustFile   = args(3)
     val outPrefix   = args(4)
 
-    println(action)
-    println(fastaFile)
-    println(protMapFile)
-    println(protMapFile)
-    println(clustFile)
-    println(outPrefix)
-
-    println(args.zipWithIndex.map{ case (a, i) => "%d: %s".format(i, a)}.mkString("\n"))
-
     val fastaMap   = Fasta.readMap(fastaFile)
-    val protMap    = Utils.readProtMapFile(protMapFile)
+    val protMap    = ProtMap.read(protMapFile)
     val clusters   = MCIReader.readClustering(clustFile)._3
     val clustering = new Clustering(clusters, protMap)
 
@@ -31,11 +24,16 @@ object GetClusterFastas extends ActionObject {
       case "singlecopycore" => clustering.taxaParaClusters.filter( pc => pc.isSingleCopy & pc.isCore(clustering.taxa.length) )
     }
 
+    val listfd = new PrintWriter(new FileWriter("%slist.tsv".format(outPrefix), false))
+    
     selectAction(action).map{ pc =>
       (pc.id, pc.cluster.flatten.map(p => fastaMap(p.toString)))
     }.foreach{ case (id, farray) =>
-      Fasta.write(farray.toList, "%s%d.fasta".format(outPrefix,id))
+      val fastaOutName = "%s%d.fasta".format(outPrefix,id)
+      listfd.write("%d\t%d\t%s\n".format(id, farray.length, fastaOutName))
+      Fasta.write(farray.toList, fastaOutName)
     }
+    listfd.close()
 
   }
 

@@ -2,9 +2,11 @@
 
 rule jgi_prots:
   input:
-    jgi_prot = lambda wildcards: (config["dataprefix"] + '/' + config["data"][wildcards.asm]["aa"]) if config["status"] == "jgi" else __NOCASE__
+    jgi_prot = lambda wildcards: (config["dataprefix"] + '/' + config["data"][wildcards.asm]["aa"]) if ("aa" in config["data"][wildcards.asm]) else __NOCASE__
   output:
     prot = "%s/prots.{asm}.fa" % __PROTS_OUTDIR__
+  params:
+    idfield = 3 if config["status"] == "jgi" else 2
   threads: 1
   shell: """
     if [ `echo {input.jgi_prot} | rev | cut -d. -f1 | rev` == 'gz' ]; then
@@ -12,7 +14,7 @@ rule jgi_prots:
     else
       cat {input.jgi_prot}
     fi \
-    | sed -e 's/^>[^|]\+|[^|]\+|\([0-9]\+\)|.*$/>{wildcards.asm}|g\\1/' \
+    | awk -v org="{wildcards.asm}" -v idfield={params.idfield} '{{ if (substr($0,1,1) == ">") {{ split($0,a,"|"); print ">" org "|" a[idfield] }} else {{ print $0 }}}}' \
     > {output.prot}
   """
 
@@ -20,7 +22,7 @@ rule jgi_prots:
 
 rule augustus_prots:
   input:
-    prot_fasta = lambda wildcards: ("%s/augustus.%s.prots.fa" % (__AUGUSTUS_OUTDIR__, wildcards.asm)) if config["status"] == "raw" else __NOCASE__
+    prot_fasta = lambda wildcards: ("%s/augustus.%s.prots.fa" % (__AUGUSTUS_OUTDIR__, wildcards.asm)) if not("aa" in config["data"][wildcards.asm]) else __NOCASE__
   output:
     prot_fasta = "%s/prots.{asm}.fa" % __PROTS_OUTDIR__
   threads: 1

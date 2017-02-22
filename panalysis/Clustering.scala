@@ -2,7 +2,7 @@ package panalysis {
 
 class Clustering(intClusters: Array[ClusterTypes.IntCluster], protMap:Array[Protein]) {
 
-  val taxa             = Utils.protMapTaxa(protMap)
+  val taxa             = ProtMap.protMapTaxa(protMap)
   val clusters         = intClusters.map(c => c.toProtein(protMap))
   val paraClusters     = clusters.map(_.toParaCluster)
   val taxaParaClusters = paraClusters.map(_.indexByTaxa(taxa))
