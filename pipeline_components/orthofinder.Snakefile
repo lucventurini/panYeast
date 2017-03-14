@@ -1,5 +1,10 @@
+###############################################################################
+# ORTHOFINDER                                                                 #
+###############################################################################
+
 
 ###############################################################################
+# Put all the protein sequences into the same folder
 
 rule orthofinder_fasta_input:
   input:
@@ -14,6 +19,8 @@ rule orthofinder_fasta_input:
   """
 
 ###############################################################################
+# Make the DIAMOND indexes for the diamond searches, and generate all diamond commands
+
 
 orthofinder_blast_dir   = "%s/input/Results/WorkingDirectory/" % __ORTHOFINDER_OUTDIR__
 orthofinder_results_dir = "%s/input/Results/" % __ORTHOFINDER_OUTDIR__
@@ -36,6 +43,7 @@ rule orthofinder_diamond_mkdb:
   """
 
 ###############################################################################
+# Run all the diamond commands... This may take some time
 
 rule orthofinder_diamond:
   input:
@@ -53,6 +61,7 @@ rule orthofinder_diamond:
   """
 
 ###############################################################################
+# Run the MCL step of orthofinder... Had some problems with this...
 
 rule orthofinder_mcl:
   input:
@@ -63,14 +72,15 @@ rule orthofinder_mcl:
     mci_output = "%s/input/Results/WorkingDirectory/mci_output.mci" % __ORTHOFINDER_OUTDIR__,
   threads: 8
   params:
-    blast_dir = "%s/input/Results/WorkingDirectory/" % __ORTHOFINDER_OUTDIR__
+    blast_dir = "%s/input/Results/WorkingDirectory/" % __ORTHOFINDER_OUTDIR__,
+    of_params = tconfig["orthofinder_params"] 
   shell: """
-    dorthofinder.py -a {threads} -b {params.blast_dir} -og --constOut
+    dorthofinder.py -a {threads} -b {params.blast_dir} {params.of_params} -og --constOut
   """
 
 ###############################################################################
-
-rule orthofinder_convert_panalysis_input:
+# Convert the output of orthofinder into the normal MCL output.
+rule orthofinder:
   input:
     protmap    = rules.orthofinder_diamond_mkdb.output.sequenceids,
     mci_output = rules.orthofinder_mcl.output.mci_output

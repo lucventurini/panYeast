@@ -1,34 +1,43 @@
-rule panalysis_tsne:
+
+###############################################################################
+
+rule tsne_trans:
   input:
-    mcl  = lambda wildcards: "%s/mcl_%s.out" % (__MCL_OUTDIR__, wildcards.ival),
-    pmap = rules.orthagogue.output.pmap
+    protmap = rules.orthofinder.output.protmap,
+    mci     = rules.orthofinder.output.mci_output
   output:
-    tsne = "%s/panalysis.{tsneType}_{ival}.tsv" % __PANALYSIS_OUTDIR__
+    tsne_count  = "%s/tsne/tsne.count.tsv" % __PANALYSIS_OUTDIR__,
+    tsne_binary = "%s/tsne/tsne.binary.tsv" % __PANALYSIS_OUTDIR__
   params:
-    install_dir = INSTALL_DIR
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
   threads: 2
   shell: """
-    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar {wildcards.tsneType} {input.mcl} {input.pmap} {output.tsne}
+    mkdir -p __PANALYSIS_OUTDIR__/tsne
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar tsne Binary {input.protmap} {input.mci} {output.tsne_binary}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar tsne Count  {input.protmap} {input.mci} {output.tsne_count}
   """
 
 ###############################################################################
 
-rule panalysis_tsne_plot:
+rule tsne_plot:
   input:
-    tsne = lambda wildcards: "%s/panalysis.%s_%s.tsv" % (__PANALYSIS_OUTDIR__, wildcards.tsneType, wildcards.ival)
+    tsne_binary = rules.tsne_trans.output.tsne_binary,
+    tsne_count  = rules.tsne_trans.output.tsne_count
   output:
-    tsnePDF = "%s/panalysis.{tsneType}_{ival}.pdf" % __PANALYSIS_OUTDIR__
+    tsne_binary = "%s/tsne/tsne.binary.pdf" % __PANALYSIS_OUTDIR__,
+    tsne_count  = "%s/tsne/tsne.count.pdf" % __PANALYSIS_OUTDIR__
   params:
     install_dir = INSTALL_DIR
   shell: """
-    Rscript {params.install_dir}/panalysis/tsneR.R {input.tsne} {output.tsnePDF}
+    Rscript {params.install_dir}/panalysis/tsneR.R {input.tsne_binary} {output.tsne_binary}
+    Rscript {params.install_dir}/panalysis/tsneR.R {input.tsne_count} {output.tsne_count}
   """
-
 
 ###############################################################################
 
-rule panalysis_all:
+rule panalysis:
   input:
-    plots = expand("%s/panalysis.{tsneType}_{ival}.pdf" % __PANALYSIS_OUTDIR__, tsneType=["tsneBinary", "tsneCount"], ival=[1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
+    tsne = rules.tsne_plot.output
 
 

@@ -11,9 +11,9 @@ rule merge_transcripts:
 
 rule extract_orthagogue_clusters:
   input:
-    clust   = "%s/mcl_1.3.out" % __MCL_OUTDIR__,
-    protmap = "%s/proteins.map" % __ORTHAGOGUE_OUTDIR__,
-    trans   = "%s/transcripts.fasta" % __CLUSTALO_OUTDIR__
+    clust   = rules.orthofinder.output.mci_output,
+    protmap = rules.orthofinder.output.protmap,
+    trans   = rules.merge_transcripts.output.trans
   output:
     list = "%s/clusters.list.tsv" % __CLUSTALO_OUTDIR__
   params:

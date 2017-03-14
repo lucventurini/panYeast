@@ -1,10 +1,10 @@
 ###############################################################################
 # AUGUSTUS                                                                    #
 ###############################################################################
-
+# Run Augustus and produce a gff file
 rule augustus_gff:
   input:
-    asm = lambda wildcards: config["dataprefix"] + '/' + config["data"][wildcards.asm]["fasta"]
+    asm = lambda wildcards: config["dataprefix"] + '/' + config["data"][wildcards.asm]["asm"]
   output:
     gff = "%s/augustus_gff.{asm}.gff" % __AUGUSTUS_OUTDIR__
   threads: 4
@@ -25,6 +25,7 @@ rule augustus_gff:
   """
 
 ###############################################################################
+# Rename the proteins in the GFF file
 
 rule augustus_gff_sample:
   input:
@@ -38,6 +39,7 @@ rule augustus_gff_sample:
   """
 
 ###############################################################################
+# Extract the protein sequences from the GFF file
 
 rule augustus_gff2fasta:
   input:
