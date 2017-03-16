@@ -13,7 +13,7 @@ rule tsne_trans:
     rule_outdir = __PANALYSIS_OUTDIR__
   threads: 2
   shell: """
-    mkdir -p __PANALYSIS_OUTDIR__/tsne
+    mkdir -p {params.rule_outdir}/tsne
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar tsne Binary {input.protmap} {input.mci} {output.tsne_binary}
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar tsne Count  {input.protmap} {input.mci} {output.tsne_count}
   """

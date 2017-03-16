@@ -44,24 +44,33 @@ rule braker:
     genome = lambda wildcards: config["dataprefix"] + "/" + config["data"][wildcards.asm]["asm"],
     bam    = lambda wildcards: "%s/aln.%s.bam" % (__BRAKER_OUTDIR__, wildcards.asm)
   output:
-    gtf_hints    = "%s/hints.{asm}.gff" % __BRAKER_OUTDIR__,
-    gtf_genemark = "%s/genes.genemark.{asm}.gff" % __BRAKER_OUTDIR__,
-    gtf_augustus = "%s/genes.augustus.{asm}.gff" % __BRAKER_OUTDIR__
+    gff = "%s/genes.augustus.{asm}.gff" % __BRAKER_OUTDIR__,
+    aa  = "%s/prots.augustus.{asm}.fa" % __BRAKER_OUTDIR__
   threads: 4
   params:
     rule_outdir = __BRAKER_OUTDIR__,
     braker_params = tconfig["braker_params"]
   shell: """
-    mkdir -p {params.rule_outdir}/braker.{wildcards.asm}
+    echo "#######################"
+    echo "#Attention: Deleting configuration for species {wildcards.asm}, predicted location is:"
+    echo "#$(readlink -f `which augustus` | rev | cut -d/ -f1 --complement | rev)/../config/species/{wildcards.asm}"
+    echo "#CHANGE in rule braker if incorrect
+    echo "#######################"
+    rm -rf {params.rule_outdir}/braker/{wildcards.asm}
+    rm -rf "$(readlink -f `which augustus` | rev | cut -d/ -f1 --complement | rev)/../config/species/{wildcards.asm}"
     braker.pl --cores {threads} \
               --GENEMARK_PATH=`which gmes_petap.pl | rev | cut -d/ -f1 --complement | rev` \
               --BAMTOOLS_PATH=`which bamtools | rev | cut -d/ -f1 --complement | rev` \
               --genome={input.genome} \
               --bam={input.bam} \
+              --species={wildcards.asm} \
               --gff3 \
+              --overwrite \
               {params.braker_params} \
-              --workingdir={params.rule_outdir}/braker.{wildcards.asm}
-    ln -s {params.rule_outdir}/braker.{wildcards.asm}/hints.gff
+              --workingdir={params.rule_outdir}/
+    ln -s {params.rule_outdir}/braker/{wildcards.asm}/augustus.gff3 {output.gff}
+    ln -s {params.rule_outdir}/braker/{wildcards.asm}/augustus.aa {output.aa}
+
   """
     
 ###############################################################################
@@ -70,46 +79,16 @@ rule braker:
 
 rule braker_rename:
   input:
-    gff = lambda wildcards: "%s/genes.augustus.%s.gff" % (__BRAKER_OUTDIR__, wildcards.asm)
+    gff = lambda wildcards: "%s/genes.augustus.%s.gff" % (__BRAKER_OUTDIR__, wildcards.asm),
+    aa  = lambda wildcards: "%s/prots.augustus.%s.fa" % (__BRAKER_OUTDIR__, wildcards.asm)
   output:
-    gff = "%s/genes.braker.{asm}.gff" % __BRAKER_OUTDIR__
+    gff = "%s/genes.braker.{asm}.gff" % __BRAKER_OUTDIR__,
+    aa  = "%s/braker.{asm}.prots.fa" % __BRAKER_OUTDIR__
   params:
     geneid_prefix = lambda wildcards: wildcards.asm
   shell: """
     sed -e "s/\([= ]\)\(g[0-9]\+\)/\\1{params.geneid_prefix}|\\2/g" {input.gff} > {output.gff}
-  """
-
-###############################################################################
-
-# Extract the protein sequences that come from the BRAKER prediction
-
-rule braker_gff2fasta:
-  input:
-    gff = lambda wildcards: "%s/genes.braker.%s.gff" % (__BRAKER_OUTDIR__, wildcards.asm)
-  output:
-    prot_fasta = "%s/braker.{asm}.prots.fa" % __BRAKER_OUTDIR__
-  threads: 1
-  benchmark: "%s/braker_gff2fasta.{asm}" % __LOGS_OUTDIR__
-  shell: """
-    cat {input.gff} \
-     | grep "^# " \
-     | tr -d '#' \
-     | grep -v -e "[pP]redict" -e "----" -e "(none)" \
-     | awk 'BEGIN{{ BUF=""; IN=0}}
-           {{if(index($0,"start") != 0){{
-              IN=1;
-            }}
-            if ( IN == 1){{
-              BUF=BUF $0
-              if( index($0, "end") != 0) {{
-                print BUF
-                BUF=""
-              }}
-            }}}}' \
-     | sed -e 's/^[ ]*start gene \([^ ]\+\) protein sequence = \[\([A-Za-z ]\+\)\] end gene.*$/>\\1\\n\\2/' \
-     | tr -d ' ' \
-     | fold -w80 \
-     > {output.prot_fasta}
+    sed -e 's/^>g\([0-9]\+\)[.].*$/>{params.geneid_prefix}|g\1/' {input.aa} > {output.aa}
   """
 
 ###############################################################################
