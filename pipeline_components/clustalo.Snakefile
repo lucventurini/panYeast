@@ -91,15 +91,3 @@ rule mergealignments:
     done;
     rm {params.rule_outdir}/temp
   """
-
-###############################################################################
-
-rule fasttree:
-  input:
-    list = "%s/alignments.list.tsv" % __CLUSTALO_OUTDIR__
-  output:
-    mergedaln = "%s/alignments.fasta" % __CLUSTALO_OUTDIR__
-  shell: """
-    
-  """
-

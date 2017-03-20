@@ -24,7 +24,7 @@ object ProtMap {
   ///////////////////////////////////////////////////////////////////////////
 
   def protMapTaxa(protMap: Array[Protein]) = {
-    protMap.foldLeft(Array(Protein("fakeSpecies|g0"))){ (arr, currProt) =>
+    protMap.foldLeft(Array(Protein("fakeSpecies|0"))){ (arr, currProt) =>
       val lastProt = arr.last
       if (lastProt.taxa == currProt.taxa) {
         arr

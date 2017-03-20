@@ -41,34 +41,44 @@ rule augustus_gff_sample:
 ###############################################################################
 # Extract the protein sequences from the GFF file
 
-rule augustus_gff2fasta:
-  input:
-    gff = lambda wildcards: "%s/augustus.%s.gff" % (__AUGUSTUS_OUTDIR__, wildcards.asm)
-  output:
-    prot_fasta = "%s/augustus.{asm}.prots.fa" % __AUGUSTUS_OUTDIR__
-  threads: 1
-  benchmark: "%s/augustus_gff2fasta.{asm}" % __LOGS_OUTDIR__
-  shell: """
-    cat {input.gff} \
-     | grep "^# " \
-     | tr -d '#' \
-     | grep -v -e "[pP]redict" -e "----" -e "(none)" \
-     | awk 'BEGIN{{ BUF=""; IN=0}}
-           {{if(index($0,"start") != 0){{ 
-              IN=1;
-            }}
-            if ( IN == 1){{
-              BUF=BUF $0
-              if( index($0, "end") != 0) {{
-                print BUF
-                BUF=""
-              }}
-            }}}}' \
-     | sed -e 's/^[ ]*start gene \([^ ]\+\) protein sequence = \[\([A-Za-z ]\+\)\] end gene.*$/>\\1\\n\\2/' \
-     | tr -d ' ' \
-     | fold -w80 \
-     > {output.prot_fasta}
-  """
+#rule augustus_gff2fasta:
+#  input:
+#    gff = lambda wildcards: "%s/augustus.%s.gff" % (__AUGUSTUS_OUTDIR__, wildcards.asm)
+#  output:
+#    prot_fasta = "%s/augustus.{asm}.prots.fa" % __AUGUSTUS_OUTDIR__
+#  threads: 1
+#  benchmark: "%s/augustus_gff2fasta.{asm}" % __LOGS_OUTDIR__
+#  shell: """
+#    cat {input.gff} \
+#     | grep "^# " \
+#     | tr -d '#' \
+#     | grep -v -e "[pP]redict" -e "----" -e "(none)" \
+#     | awk 'BEGIN{{ BUF=""; IN=0}}
+#           {{if(index($0,"start") != 0){{ 
+#              IN=1;
+#            }}
+#            if ( IN == 1){{
+#              BUF=BUF $0
+#              if( index($0, "end") != 0) {{
+#                print BUF
+#                BUF=""
+#              }}
+#            }}}}' \
+#     | sed -e 's/^[ ]*start gene \([^ ]\+\) protein sequence = \[\([A-Za-z ]\+\)\] end gene.*$/>\\1\\n\\2/' \
+#     | tr -d ' ' \
+#     | fold -w80 \
+#     > {output.prot_fasta}
+#  """
 
 ###############################################################################
 
+rule augustus_gff2fasta:
+  input:
+    gff = lambda wildcards: "%s/augustus.%s.gff" % (__AUGUSTUS_OUTDIR__, wildcards.asm),
+    asm = lambda wildcards: config["dataprefix"] + '/' + config["data"][wildcards.asm]["asm"]
+  output:
+    prot_fasta = "%s/augustus.{asm}.prots.fa" % __AUGUSTUS_OUTDIR__
+  threads: 1
+  shell: """
+    gffread -y {output.prot_fasta} -g {input.asm} {input.gff}
+  """

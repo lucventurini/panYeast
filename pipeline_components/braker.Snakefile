@@ -53,7 +53,8 @@ rule braker:
   shell: """
     echo "#######################"
     echo "#Attention: Deleting configuration for species {wildcards.asm}, predicted location is:"
-    echo "#$(readlink -f `which augustus` | rev | cut -d/ -f1 --complement | rev)/../config/species/{wildcards.asm}"
+    loc="$(readlink -f `which augustus` | rev | cut -d/ -f1 --complement | rev)/../config/species/{wildcards.asm}"
+    echo "#$loc"
     echo "#CHANGE in rule braker if incorrect
     echo "#######################"
     rm -rf {params.rule_outdir}/braker/{wildcards.asm}
@@ -83,12 +84,12 @@ rule braker_rename:
     aa  = lambda wildcards: "%s/prots.augustus.%s.fa" % (__BRAKER_OUTDIR__, wildcards.asm)
   output:
     gff = "%s/genes.braker.{asm}.gff" % __BRAKER_OUTDIR__,
-    aa  = "%s/braker.{asm}.prots.fa" % __BRAKER_OUTDIR__
+    aa  = "%s/prots.braker.{asm}.fa" % __BRAKER_OUTDIR__
   params:
     geneid_prefix = lambda wildcards: wildcards.asm
   shell: """
-    sed -e "s/\([= ]\)\(g[0-9]\+\)/\\1{params.geneid_prefix}|\\2/g" {input.gff} > {output.gff}
-    sed -e 's/^>g\([0-9]\+\)[.].*$/>{params.geneid_prefix}|g\1/' {input.aa} > {output.aa}
+    sed -e "s/\([= ]\)\(g[0-9]\+\)/\\1{params.geneid_prefix}|\\2/g"  {input.gff} > {output.gff}
+    sed -e 's/^>\(.\+\)$/>{params.geneid_prefix}|\\1/' {input.aa} > {output.aa}
   """
 
 ###############################################################################

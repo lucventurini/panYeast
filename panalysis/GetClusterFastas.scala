@@ -24,12 +24,12 @@ object GetClusterFastas extends ActionObject {
       case "singlecopycore" => clustering.taxaParaClusters.filter( pc => pc.isSingleCopy & pc.isCore(clustering.taxa.length) )
     }
 
-    val listfd = new PrintWriter(new FileWriter("%slist.tsv".format(outPrefix), false))
+    val listfd = new PrintWriter(new FileWriter("%s.list.tsv".format(outPrefix), false))
     
     selectAction(action).map{ pc =>
       (pc.id, pc.cluster.flatten.map(p => fastaMap(p.toString)))
     }.foreach{ case (id, farray) =>
-      val fastaOutName = "%s%d.fasta".format(outPrefix,id)
+      val fastaOutName = "%s.%d.fasta".format(outPrefix,id)
       listfd.write("%d\t%d\t%s\n".format(id, farray.length, fastaOutName))
       Fasta.write(farray.toList, fastaOutName)
     }
@@ -40,7 +40,15 @@ object GetClusterFastas extends ActionObject {
   /////////////////////////////////////////////////////////////////////////////
 
   override def usage = {
-    println("clusterFastas.scala")
+    println("clusterFastas.scala: <action> <fastaFile> <protmapFile> <clustfile> <outprefix>")
+    println("")
+    println("  action:     core -> Returns the FASTA sequences for only the core genes (present in all genomes")
+    println("              singleCopy -> Returns single copy genes in FASTA format")
+    println("              singleCopyCore -> Intesection of above")
+    println(" fastaFile:   FASTA file format of all sequences in set")
+    println(" protMapFile: Protein map")
+    println(" clustFile:   Output from MCL")
+    println(" outPrefix:   Prefix of output, returns <outPrefix>.list.tsv with list of all files")
   }
 
 }

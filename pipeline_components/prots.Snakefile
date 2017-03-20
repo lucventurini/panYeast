@@ -15,7 +15,9 @@ def prot_wrapper_input(wildcards):
   if (aa):
     return "%s/renamed_prots.%s.fa" % (__PROTS_OUTDIR__, wildcards.asm)
     # We don't have annotations, if we have RNA-Seq, use BRAKER, otherwise, use augustus
-  if (not(gff) and rnaseq):
+  elif (gff):
+    return "%s/generated_prot.%s.fa" % (__PROTS_OUTDIR__, wildcards.asm)
+  elif (not(gff) and rnaseq):
     return "%s/braker_prots.%s.fa" % (__PROTS_OUTDIR__, wildcards.asm)
   else:
     return "%s/augustus_prots.%s.fa" % (__PROTS_OUTDIR__, wildcards.asm)
@@ -30,6 +32,19 @@ rule prots_wrapper:
     fa = "%s/prots.{asm}.fa" % __PROTS_OUTDIR__
   shell: """
     ln -s {input.fa} {output.fa}
+  """
+
+###############################################################################
+
+rule generated_prots:
+  input:
+    gff = lambda wildcards: "%s/renamed.%s.gff" % (__GIVEN_GFF_OUTDIR__, wildcards.asm),
+    asm = lambda wildcards: config["dataprefix"] + '/' + config["data"][wildcards.asm]["asm"]
+  output:
+    fa = "%s/generated_prot.{asm}.fa"% (__PROTS_OUTDIR__)
+  shell: """
+    gffread -y {output.fa}.orig -g {input.asm} {input.gff}
+    sed -e 's/^>\([^ ]\+\).*/>{wildcards.asm}|\1/' {output.fa}.orig > {output.fa}
   """
 
 ###############################################################################
@@ -52,7 +67,8 @@ rule given_prots:
     | awk -v org="{wildcards.asm}" -v idfield="{params.idfield}" -v field_delim="{params.field_delim}" '
       {{
         if (substr($0,1,1) == ">") {{
-          split($0,a,field_delim); print ">" org "|" a[idfield]
+          split(substr($0,2),a,field_delim);
+          print ">" org "|" a[idfield]
         }} else {{
           print $0
         }}
@@ -76,7 +92,7 @@ rule augustus_prots:
 
 rule braker1_prots:
   input:
-    prot_fasta = lambda wildcards: "%s/braker.%s.prots.fa" % (__BRAKER_OUTDIR__, wildcards.asm)
+    prot_fasta = lambda wildcards: "%s/prots.braker.%s.fa" % (__BRAKER_OUTDIR__, wildcards.asm)
   output:
     prot_fasta = "%s/braker_prots.{asm}.fa" % __PROTS_OUTDIR__
   threads: 1

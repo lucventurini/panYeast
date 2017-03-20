@@ -13,7 +13,7 @@ tconfig={
   "nt_field_delim" : "|",
 
     # BRAKER OPTIONS
-  "braker_params" : "-fungus --filterOutShort",
+  "braker_params" : "-fungus --filterOutShort --alternatives-from-evidence=false",
   "star_params"   : "--readFilesCommand zcat",
 
     # AUGUSTUS OPTIONS
@@ -25,6 +25,7 @@ tconfig={
 
   "orthofinder_params" : "--louvain"
 
+  "fasttree_params" : "-fastest -gtr"
 
   
 }

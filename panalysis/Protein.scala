@@ -1,8 +1,8 @@
 package panalysis {
 
-case class Protein(taxa:String, pid:Int, uniqueID:Int) {
+case class Protein(taxa:String, pid:String, uniqueID:Int) {
 
-  override def toString = "%s%s%d".format(taxa, Protein.delim, pid)
+  override def toString = "%s%s%s".format(taxa, Protein.delim, pid)
 
   def ==(that: Protein) = {
     (this.taxa == that.taxa) & (this.pid == that.pid)
@@ -12,21 +12,21 @@ case class Protein(taxa:String, pid:Int, uniqueID:Int) {
 
 object Protein {
 
-  var delim = "|g"
-  var regex_delim = "\\|g"
+  var delim = "|"
+  var regex_delim = "\\|"
 
   /////////////////////////////////////////////////////////////////////////////
 
   def apply(str:String): Protein = {
     val values = str.split(regex_delim)
-    Protein(values(0), values(1).toInt, -1)
+    Protein(values(0), values(1), -1)
   }
 
   /////////////////////////////////////////////////////////////////////////////
 
   def apply(str:String, uniqueID:Int): Protein = {
     val values = str.split(regex_delim)
-    Protein(values(0), values(1).toInt, uniqueID)
+    Protein(values(0), values(1), uniqueID)
   }
 
   /////////////////////////////////////////////////////////////////////////////
