@@ -23,6 +23,14 @@ object GetClusterFastas extends ActionObject {
       case "singlecopy"     => clustering.taxaParaClusters.filter( pc => pc.isSingleCopy )
       case "singlecopycore" => clustering.taxaParaClusters.filter( pc => pc.isSingleCopy & pc.isCore(clustering.taxa.length) )
       case "oneofparacore"  => clustering.taxaParaClusters.filter( pc => pc.isCore(clustering.taxa.length) ).map(c => ClusterTypes.ProteinParaCluster(c.id, c.cluster.map(x => x.slice(0,1)), c.taxaIndexed))
+      case "singlecoreelseoneof" => {
+        val singleCore = selectAction("singlecopyCore")
+        if (singleCore.length == 0){
+          selectAction("onePfParaCore")
+        } else {
+          singleCore
+        }
+      }
       case _                => clustering.taxaParaClusters
     }
 
@@ -47,7 +55,7 @@ object GetClusterFastas extends ActionObject {
     println("  action:     core -> Returns the FASTA sequences for only the core genes (present in all genomes")
     println("              singleCopy -> Returns single copy genes in FASTA format")
     println("              singleCopyCore -> Intesection of above")
-    println("              oneofparacore -> Given a non-single copy core cluster, for each species return one of them.")
+    println("              oneOfParaCore -> Given a non-single copy core cluster, for each species return one of them.")
     println("              _ -> return all protein sequences in each cluster")
     println(" fastaFile:   FASTA file format of all sequences in set")
     println(" protMapFile: Protein map")

@@ -20,7 +20,7 @@ rule extract_orthagogue_clusters:
     rule_outdir = __CLUSTALO_OUTDIR__,
     install_dir = INSTALL_DIR
   shell: """
-    java -Xms20g -jar {params.install_dir}/panalysis/panalysis.jar getClusterFastas singlecopycore {input.trans} {input.protmap} {input.clust} {params.rule_outdir}/clusters
+    java -Xms100g -jar {params.install_dir}/panalysis/panalysis.jar getClusterFastas singleCoreElseOneOf {input.trans} {input.protmap} {input.clust} {params.rule_outdir}/clusters
   """
 
 rule extract_orthofinder_clusters:

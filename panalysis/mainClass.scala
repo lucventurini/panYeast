@@ -9,8 +9,8 @@ object mainClass {
                 "protMapCheck"     -> ProtMapCheck,
                 "printTree"        -> PrintTree,
                 "addPanToTree"     -> AddPanToTree,
-                "GetPanTree"       -> GetPanTree
-               ).map{ case (k,v) => (k.toLowerCase, v) }
+                "GetPanTree"       -> GetPanTree,
+                "test"             -> Test).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////
 

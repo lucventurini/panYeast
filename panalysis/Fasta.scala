@@ -3,21 +3,109 @@
 //package ara.uniquemarkers
 
 import scala.util.parsing.combinator._
+import scala.annotation._
 import java.io._
 
 package panalysis{
 object Fasta {
-  /****************************************************************************
-   * https://gist.github.com/paradigmatic/3437345                             *
-   ****************************************************************************/
 
-  case class Entry( description: String, sequence: String )
+  class FastaSeq(seq: Array[Int], length: Int){
+
+    override def toString = {
+      this.seq.foldLeft(""){ (prev: String, next: Int) =>
+        //println(next.toBinaryString)
+        prev + (0 to FastaSeq.nBasesPerVal-1).map{ i =>
+          val cbits = (next & (FastaSeq.filledBits << (FastaSeq.nBitsPerBase*i))) >>> (FastaSeq.nBitsPerBase*i)
+          //println("%d: %s -> %s".format(i, cbits.toBinaryString, FastaSeq.bit2base(cbits)))
+          FastaSeq.bit2base(cbits)
+        }.mkString("")
+      }.slice(0,this.length)
+    }
+  }
 
   /////////////////////////////////////////////////////////////////////////////
 
-  def read( fn: String ): List[Entry] = {
-    val lines = io.Source.fromFile(fn).getLines.mkString("\n")
-    fromString( lines )
+  object FastaSeq{
+
+    val nBitsPerBase = 3
+    val nBasesPerVal = 32/nBitsPerBase
+    val filledBits = Math.pow(2,nBitsPerBase).toInt-1
+
+    /////////////////////////////////////////////////////////////////////////////
+
+    def base2bit(base: Char) : Int = {
+      base match {
+        case 'a' => 0
+        case 'c' => 1
+        case 'g' => 2
+        case 't' => 3
+        case 'n' => 4
+      }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    def bit2base(bit: Int) = {
+      bit match {
+        case 0 => 'a'
+        case 1 => 'c'
+        case 2 => 'g'
+        case 3 => 't'
+        case 4 => 'n'
+      }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    def fromString(seq: String) = {
+      val lseq = seq.toLowerCase
+      val bseq = (0 to seq.length by this.nBasesPerVal).map{ i =>
+        lseq.substring(i,math.min(i+this.nBasesPerVal, seq.length)).toCharArray.zipWithIndex.foldLeft(0){ (prev: Int, next: (Char,Int)) =>
+          //println("%c -> %d -> %32s | %32s".format(next._1, base2bit(next._1), prev.toBinaryString, (base2bit(next._1) << (next._2*2)).toBinaryString))
+          prev | (base2bit(next._1) << (next._2*this.nBitsPerBase))
+        }
+      }.toArray
+      new FastaSeq(bseq, seq.length)
+    }
+
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  case class Entry( description: String, sequence: FastaSeq )
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  class groupFastaLinesIterator(iter: BufferedIterator[String]) extends Iterator[Entry] {
+    def hasNext = iter.hasNext
+    def next = {
+      if (!iter.hasNext) {
+        Iterator.empty.next
+      } else {
+
+        @tailrec def untilNext(head: String, seq: String):  Entry = {
+          val line = if(iter.hasNext) iter.head else ""
+          
+          if (!iter.hasNext || ( line.length > 1 && line.charAt(0) == '>')) {
+            if (head.length == 0) {
+              untilNext(iter.next.substring(1), "")
+            } else {
+              Entry(head, FastaSeq.fromString(seq))
+            }
+          } else {
+            untilNext(head, seq + iter.next)
+          }
+        }
+
+        untilNext("", "")
+      }
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  def read( fn: String ): groupFastaLinesIterator = {
+    new groupFastaLinesIterator(io.Source.fromFile(fn).getLines.buffered)
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -28,38 +116,10 @@ object Fasta {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  def fromString( input: String ): List[Entry] =
-    Parser.parse(input)
-
-  /////////////////////////////////////////////////////////////////////////////
-
-  private object Parser extends RegexParsers {
-
-    lazy val header = """>.*""".r ^^ { _.tail.trim }  
-    lazy val seqLine = """[^>].*""".r ^^ { _.trim }
-
-    lazy val sequence = rep1( seqLine ) ^^ { _.mkString }
-
-    lazy val entry = header ~ sequence ^^ { 
-      case h ~ s => Entry(h,s)
-    }
-
-    lazy val entries = rep1( entry )
-
-    def parse( input: String ): List[Entry]  = {
-      parseAll( entries, input ) match {
-        case Success( es , _ ) => es
-        case x: NoSuccess =>  throw new Exception(x.toString)
-      }
-    }
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
-
   def print(fastaList: Iterable[Entry]) = {
     def printSingleFasta(fastaSingle: Entry) = {
       println('>' + fastaSingle.description)
-      println(fastaSingle.sequence)
+      println(fastaSingle.sequence.toString)
     }
     fastaList.map(printSingleFasta)
   }
@@ -72,7 +132,7 @@ object Fasta {
 
     for (e <- fastaList){
       outfd.write(">" + e.description + '\n');
-      for ( l <- e.sequence.grouped(80).toList) {
+      for ( l <- e.sequence.toString.grouped(80).toList) {
         outfd.write(l + '\n');
       }
     }
