@@ -6,6 +6,14 @@ object Utils {
 
   ///////////////////////////////////////////////////////////////////////////
 
+  case class NumberRange(min:Double, max:Double) {
+
+    def isBetween(value: Double) = {
+      (value >= min) && (value <= max)
+    }
+
+  }
+
   def doubleMatrixToFile(mat: Array[Array[Double]], outFile:String, sep:String) = {
     val bw = new BufferedWriter(new FileWriter(new File(outFile)))
     mat.map( gene => gene.mkString(sep)).foreach( line => bw.write(line + "\n"))

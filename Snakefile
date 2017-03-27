@@ -23,7 +23,7 @@ tconfig={
     # DIAMOND OPTIONS (inside orthofinder)
   "diamond_k" : "%d" % 10,
 
-  "orthofinder_params" : "--louvain"
+  "orthofinder_params" : "--louvain",
 
   "fasttree_params" : "-fastest -gtr"
 

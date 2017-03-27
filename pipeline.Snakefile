@@ -19,6 +19,7 @@ __TRANS_OUTDIR__      = "%s/trans" % __RUN_DIR__
 __ORTHOFINDER_OUTDIR__ = "%s/orthofinder" % __RUN_DIR__
 
 __CLUSTALO_OUTDIR__  = "%s/clustalo" % __RUN_DIR__
+__FASTTREE_OUTDIR__  = "%s/fasttree" % __RUN_DIR__
 
 __PANALYSIS_OUTDIR__  = "%s/panalysis" % __RUN_DIR__
 
@@ -50,5 +51,6 @@ include: "%s/trans.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/orthofinder.Snakefile" % __PIPELINE_COMPONENTS__
 
 include: "%s/clustalo.Snakefile" % __PIPELINE_COMPONENTS__
+include: "%s/fasttree.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/panalysis.Snakefile" % __PIPELINE_COMPONENTS__
 

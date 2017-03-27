@@ -6,7 +6,7 @@ import jebl.evolution.trees.{NeighborJoiningTreeBuilder => NJ}
 
 object resolveParalogs extends ActionObject{
 
-  def main(args: Array[String]) = {
+  override def main(args: Array[String]) = {
     println("NOOO")
   }
 

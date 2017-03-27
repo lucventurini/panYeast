@@ -16,12 +16,14 @@ object GetClusterFastas extends ActionObject {
     val fastaMap   = Fasta.readMap(fastaFile)
     val protMap    = ProtMap.read(protMapFile)
     val clusters   = MCIReader.readClustering(clustFile)._3
-    val clustering = new Clustering(clusters, protMap)
+    val clustering = Clustering(clusters, protMap)
 
     def selectAction(action: String): Array[ClusterTypes.ProteinParaCluster] = action.toLowerCase match {
       case "core"           => clustering.taxaParaClusters.filter( pc => pc.isCore(clustering.taxa.length) )
       case "singlecopy"     => clustering.taxaParaClusters.filter( pc => pc.isSingleCopy )
       case "singlecopycore" => clustering.taxaParaClusters.filter( pc => pc.isSingleCopy & pc.isCore(clustering.taxa.length) )
+      case "oneofparacore"  => clustering.taxaParaClusters.filter( pc => pc.isCore(clustering.taxa.length) ).map(c => ClusterTypes.ProteinParaCluster(c.id, c.cluster.map(x => x.slice(0,1)), c.taxaIndexed))
+      case _                => clustering.taxaParaClusters
     }
 
     val listfd = new PrintWriter(new FileWriter("%s.list.tsv".format(outPrefix), false))
@@ -45,6 +47,8 @@ object GetClusterFastas extends ActionObject {
     println("  action:     core -> Returns the FASTA sequences for only the core genes (present in all genomes")
     println("              singleCopy -> Returns single copy genes in FASTA format")
     println("              singleCopyCore -> Intesection of above")
+    println("              oneofparacore -> Given a non-single copy core cluster, for each species return one of them.")
+    println("              _ -> return all protein sequences in each cluster")
     println(" fastaFile:   FASTA file format of all sequences in set")
     println(" protMapFile: Protein map")
     println(" clustFile:   Output from MCL")

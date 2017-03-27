@@ -6,14 +6,17 @@ object mainClass {
                 "getClusterFastas" -> GetClusterFastas, // java -Xms20g -jar panalysis.jar getClusterFastas singlecopycore ../run/diamond/input_fasta.fa ../run/orthagogue/proteins.map ../run/mcl/mcl_1.4.out run/clusterFastas/test.
                 "resolveParalogs"  -> ResolveParalogs,
                 "actionTemplate"   -> ActionTemplate,
-                "protMapCheck"     -> ProtMapCheck
+                "protMapCheck"     -> ProtMapCheck,
+                "printTree"        -> PrintTree,
+                "addPanToTree"     -> AddPanToTree,
+                "GetPanTree"       -> GetPanTree
                ).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////
 
   def main(args: Array[String]): Unit = {
 
-    if (args.length < 1 || args(0).toLowerCase == "help") {
+    if (args.length < 1 || args(0).toLowerCase == "help" || !(ops contains args(0).toLowerCase)) {
       usage
     } else {
 
@@ -34,7 +37,7 @@ object mainClass {
     println("Panalysis: Toolkit for pan genome analysis")
     ops.keys.foreach{ k =>
       val action = ops(k)
-      println("  \033[1m%s\033[0m -> %s".format(k, action.description))
+      println("  %s%s%s -> %s".format(Console.BOLD, k, Console.RESET, action.description))
     }
   }
 

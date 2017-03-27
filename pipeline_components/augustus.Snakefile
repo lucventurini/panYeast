@@ -71,14 +71,23 @@ rule augustus_gff_sample:
 #  """
 
 ###############################################################################
+#Create protein sequence... Augustus gives wrong name by default
+# This is admittedly a bit messy!!
 
-rule augustus_gff2fasta:
+
+rule augustus_prot_fasta:
   input:
-    gff = lambda wildcards: "%s/augustus.%s.gff" % (__AUGUSTUS_OUTDIR__, wildcards.asm),
-    asm = lambda wildcards: config["dataprefix"] + '/' + config["data"][wildcards.asm]["asm"]
+    nt_fasta = lambda wildcards: "%s/transcripts.%s.fa" % (__TRANS_OUTDIR__, wildcards.asm)
   output:
     prot_fasta = "%s/augustus.{asm}.prots.fa" % __AUGUSTUS_OUTDIR__
-  threads: 1
-  shell: """
-    gffread -y {output.prot_fasta} -g {input.asm} {input.gff}
-  """
+  run:
+    from utils import seq as seq
+    with open(output.prot_fasta, 'w') as fo:
+      for (fa_header, fa_seq) in zip(*seq.read_fasta(input.nt_fasta)):
+        fo.write(">%s\n" % fa_header)
+        fo.write("%s\n" % seq.nt_translate(fa_seq))
+      #efor
+    #ewith
+#  shell: """
+#    gffread -y {output.prot_fasta} -g {input.asm} {input.gff}
+#  """

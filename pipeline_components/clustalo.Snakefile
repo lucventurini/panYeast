@@ -20,7 +20,7 @@ rule extract_orthagogue_clusters:
     rule_outdir = __CLUSTALO_OUTDIR__,
     install_dir = INSTALL_DIR
   shell: """
-    java -Xms20g -jar {params.install_dir}/panalysis/panalysis.jar getClusterFastas singlecopycore {input.trans} {input.protmap} {input.clust} {params.rule_outdir}/clusters.
+    java -Xms20g -jar {params.install_dir}/panalysis/panalysis.jar getClusterFastas singlecopycore {input.trans} {input.protmap} {input.clust} {params.rule_outdir}/clusters
   """
 
 rule extract_orthofinder_clusters:
@@ -90,4 +90,18 @@ rule mergealignments:
       cp {params.rule_outdir}/temp {output.mergedaln}
     done;
     rm {params.rule_outdir}/temp
+  """
+
+###############################################################################
+
+rule mergealignments_clean:
+  input: 
+    aln = rules.mergealignments.output.mergedaln
+  output:
+    aln = "%s/alignments.cleaned.fasta" % __CLUSTALO_OUTDIR__
+  shell: """
+  cat {input.aln} \
+    | tr -d ' \t' \
+    | sed -e 's/^>\([^|]\+\)|.*/>\\1/' \
+    > {output.aln}
   """

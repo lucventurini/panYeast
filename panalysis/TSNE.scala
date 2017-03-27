@@ -15,7 +15,7 @@ object TSNE extends ActionObject {
 
     val protMap     = ProtMap.read(protMapFile)
     val intClusters = MCIReader.readClustering(clusteringFile)._3
-    val clustering  = new Clustering(intClusters, protMap)
+    val clustering  = Clustering(intClusters, protMap)
 
     val matrix = action.toLowerCase match {
       case "binary"        => clustering.tsneMatrixBinary

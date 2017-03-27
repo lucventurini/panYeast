@@ -18,7 +18,7 @@ object MCIReader {
     var dim2     = 0
     var count    = 0
 
-    println("Reading MCL File")
+    Console.err.println("Reading MCL File")
     for(line <- buf) {
       if (line contains "dimensions") {
         val dim     = line.stripLineEnd.trim.split(' ')(1).split('x').map(x => x.toInt)
@@ -33,7 +33,7 @@ object MCIReader {
             if (line contains "$") {
               count += 1
               if (count % reportLines == 0) {
-                print("\rProcessed %d lines".format(count))
+                Console.err.print("\rProcessed %d lines".format(count))
               }
               rows += rowline.filterNot("\n$".toSet).split("[ \t]+").filter(x => x.length > 0)
               rowline = ""
@@ -42,7 +42,7 @@ object MCIReader {
         }
       }
     }
-    println("")
+    Console.err.println("")
 
     (dim1, dim2, rows)
 
@@ -66,7 +66,7 @@ object MCIReader {
     var network = new mciNetwork
     var count   = 0
  
-    println("Parsing network")
+    Console.err.println("Parsing network")
     netLines.map{ arr =>
       val outNode = arr(0).toInt
       arr.drop(1).map(edge => edge.split(':')).map{ case Array(inNode:String, weight:String) => (outNode, inNode.toInt, weight.toFloat)}
@@ -75,12 +75,12 @@ object MCIReader {
           network += (outNode, inNode, weight)
           count += 1
           if ( count % reportLines == 0) {
-            print("\rProcessed %d edges".format(count))
+            Console.err.print("\rProcessed %d edges".format(count))
           }
         }
       }
     }
-    println("")
+    Console.err.println("")
     network
   }
 

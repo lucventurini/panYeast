@@ -101,10 +101,26 @@ object ClusterTypes {
     /////////////////////////////////////////////////////////////////////////////
 
     def indexByTaxa(taxa: Array[String]) = {
-      val taxaPC = this.cluster.map{ pc =>
-        (pc(0).taxa, pc)
-      }.toMap
-      ProteinParaCluster(this.id, taxa.map( t => taxaPC.getOrElse(t, Array.empty[Protein])), true)
+      this.taxaIndexed match {
+        case false => {
+          val taxaPC = this.cluster.map{ pc =>
+            (pc(0).taxa, pc)
+          }.toMap
+          ProteinParaCluster(this.id, taxa.map( t => taxaPC.getOrElse(t, Array.empty[Protein])), true)
+        }
+        case true => {
+          this
+        }
+      }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+
+    def nSubsetTaxa(taxa: Array[Int]): Int = {
+      this.taxaIndexed match {
+        case true  => taxa.filter(t => this.cluster(t).length > 0).length
+        case false => -1
+      }
     }
 
     /////////////////////////////////////////////////////////////////////////////

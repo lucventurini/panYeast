@@ -7,7 +7,8 @@ scala="`which scala` -classpath $scala_classpath"
 
 echo "Building PANalysis..."
 mkdir -p panalysis
-$scalac -d ./ ActionObject.scala Clustering.scala ClusterTypes.scala ProtMap.scala ProtMapCheck.scala Fasta.scala GetClusterFastas.scala mainClass.scala MCINetwork.scala MCIReader.scala Protein.scala ResolveParalogs.scala Test.scala TSNE.scala Utils.scala ActionTemplate.scala
+#$scalac -d ./ ActionObject.scala Clustering.scala ClusterTypes.scala ProtMap.scala ProtMapCheck.scala Fasta.scala GetClusterFastas.scala mainClass.scala MCINetwork.scala MCIReader.scala Protein.scala Test.scala TSNE.scala Utils.scala ActionTemplate.scala Newick.scala PrintTree.scala AddPanToTree.scala GetPanTree.scala
+$scalac -d ./ `grep 'package[ ]\+panalysis' *.scala | cut -d: -f1`
 
 echo "Constructing jar..."
 cat > panalysis.mf << EOF
