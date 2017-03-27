@@ -11,6 +11,8 @@ rule fasttree:
     FastTree -nt {params.fasttree_params} < {input.aln} > {output.tree}
   """
 
+###############################################################################
+
 rule fasttree_annotate_inodes:
   input:
     tree = rules.fasttree.output.tree
@@ -33,3 +35,5 @@ rule fasttree_annotate_inodes:
      | tr -d '\n' \
      > {output.tree}
   """
+
+###############################################################################

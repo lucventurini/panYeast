@@ -6,7 +6,7 @@
 
 rule braker_align_gen_index:
   input:
-    genome = lambda wildcards: config["dataprefix"] + "/" + config["data"][wildcards.asm]["asm"]
+    asm = lambda wildcards: "%s/asm.%s.fa" % (__GIVEN_ASM_OUTDIR__, wildcards.asm),
   output:
     index = "%s/aln.{asm}.idx" % __BRAKER_OUTDIR__
   params:
@@ -41,8 +41,8 @@ rule braker_align:
 
 rule braker:
   input:
-    genome = lambda wildcards: config["dataprefix"] + "/" + config["data"][wildcards.asm]["asm"],
-    bam    = lambda wildcards: "%s/aln.%s.bam" % (__BRAKER_OUTDIR__, wildcards.asm)
+    asm = lambda wildcards: "%s/asm.%s.fa" % (__GIVEN_ASM_OUTDIR__, wildcards.asm),
+    bam = lambda wildcards: "%s/aln.%s.bam" % (__BRAKER_OUTDIR__, wildcards.asm)
   output:
     gff = "%s/genes.augustus.{asm}.gff" % __BRAKER_OUTDIR__,
     aa  = "%s/prots.augustus.{asm}.fa" % __BRAKER_OUTDIR__
@@ -62,7 +62,7 @@ rule braker:
     braker.pl --cores {threads} \
               --GENEMARK_PATH=`which gmes_petap.pl | rev | cut -d/ -f1 --complement | rev` \
               --BAMTOOLS_PATH=`which bamtools | rev | cut -d/ -f1 --complement | rev` \
-              --genome={input.genome} \
+              --genome={input.asm} \
               --bam={input.bam} \
               --species={wildcards.asm} \
               --gff3 \

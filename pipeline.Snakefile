@@ -6,7 +6,8 @@ __RUN_DIR__             = "%s/run/" % WORKDIR
 
 __AUGUSTUS_OUTDIR__   = "%s/augustus" % __RUN_DIR__
 __BRAKER_OUTDIR__     = "%s/braker" % __RUN_DIR__
-__GIVEN_GFF_OUTDIR__  = "%s/given_gff"% __RUN_DIR__
+__GIVEN_GFF_OUTDIR__  = "%s/given_gff" % __RUN_DIR__
+__GIVEN_ASM_OUTDIR__  = "%s/given_asm" % __RUN_DIR__
 __PROTS_OUTDIR__      = "%s/prots" % __RUN_DIR__
 __TRANS_OUTDIR__      = "%s/trans" % __RUN_DIR__
 
@@ -41,6 +42,7 @@ __NOCASE__ = "/dev/null/nothing/ever/exists"
 include: "%s/augustus.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/braker.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/gff.Snakefile" % __PIPELINE_COMPONENTS__
+include: "%s/asm.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/prots.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/trans.Snakefile" % __PIPELINE_COMPONENTS__
 

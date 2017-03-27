@@ -1,6 +1,7 @@
 package panalysis {
 
 import java.io._
+import scala.Console
 
 object GetClusterFastas extends ActionObject {
 
@@ -36,7 +37,16 @@ object GetClusterFastas extends ActionObject {
 
     val listfd = new PrintWriter(new FileWriter("%s.list.tsv".format(outPrefix), false))
     
-    selectAction(action).map{ pc =>
+    selectAction(action).filter{pc =>
+      var nSeqsNotFound = 0
+      pc.cluster.flatten.foreach{ p =>
+        if(!fastaMap.contains (p.toString)) {
+          nSeqsNotFound += 1
+          Console.err.println("Error, did not find %s in cluster %d".format(p.toString, pc.id))
+        }
+      }
+      nSeqsNotFound == 0
+    }.map{ pc =>
       (pc.id, pc.cluster.flatten.map(p => fastaMap(p.toString)))
     }.foreach{ case (id, farray) =>
       val fastaOutName = "%s.%d.fasta".format(outPrefix,id)

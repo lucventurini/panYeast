@@ -4,7 +4,7 @@
 # Run Augustus and produce a gff file
 rule augustus_gff:
   input:
-    asm = lambda wildcards: config["dataprefix"] + '/' + config["data"][wildcards.asm]["asm"]
+    asm = lambda wildcards: "%s/asm.%s.fa" % (__GIVEN_ASM_OUTDIR__, wildcards.asm)
   output:
     gff = "%s/augustus_gff.{asm}.gff" % __AUGUSTUS_OUTDIR__
   threads: 4

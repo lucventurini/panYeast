@@ -36,8 +36,25 @@ rule tsne_plot:
 
 ###############################################################################
 
+rule pancore_tree:
+  input:
+    tree = rules.fasttree_annotate_inodes.output.tree,
+    clust   = rules.orthofinder.output.mci_output,
+    protmap = rules.orthofinder.output.protmap
+  output:
+    tree = "%s/tree/tree.newick" % __PANALYSIS_OUTDIR__
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  shell: """
+    mkdir -p {params.rule_outdir}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar addpantotree {input.tree} {input.protmap} {input.clust} {output.tree} 
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar printTree {output.tree}
+  """
+
 rule panalysis:
   input:
-    tsne = rules.tsne_plot.output
+    tsne    = rules.tsne_plot.output,
+    tree    = rules.pancore_tree.output
 
 

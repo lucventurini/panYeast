@@ -39,7 +39,7 @@ rule prots_wrapper:
 rule generated_prots:
   input:
     gff = lambda wildcards: "%s/renamed.%s.gff" % (__GIVEN_GFF_OUTDIR__, wildcards.asm),
-    asm = lambda wildcards: config["dataprefix"] + '/' + config["data"][wildcards.asm]["asm"]
+    asm = lambda wildcards: "%s/asm.%s.fa" % (__GIVEN_ASM_OUTDIR__, wildcards.asm)
   output:
     fa = "%s/generated_prot.{asm}.fa"% (__PROTS_OUTDIR__)
   shell: """

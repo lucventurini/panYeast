@@ -50,9 +50,12 @@ object AddPanToTree extends ActionObject {
   ///////////////////////////////////////////////////////////////////////////
 
   override def usage() = {
-    println("PrintTree <treeFile>")
+    println("getPanTree <treeFile> <protMapFile> <clusteringFile> <outFile>")
     println("")
     println("  treeFile: A tree in Newick format")
+    println("  protMapFile: Protein map produced e.g. by orthofinder")
+    println("  clusteringFile: MCL clustering file")
+    println("  outFile: output file, - for stdout")
     println("")
   }
 

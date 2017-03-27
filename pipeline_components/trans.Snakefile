@@ -69,7 +69,7 @@ def gen_trans_gff(wildcards):
 rule gen_trans:
   input:
     gff = lambda wildcards: gen_trans_gff(wildcards),
-    asm = lambda wildcards: config["dataprefix"] + '/' + config["data"][wildcards.asm]["asm"]
+    asm = lambda wildcards: "%s/asm.%s.fa" % (__GIVEN_ASM_OUTDIR__, wildcards.asm)
   output:
     trans_fasta = "%s/generated_trans.{asm}.fa" % __TRANS_OUTDIR__
   threads: 1
