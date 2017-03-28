@@ -14,7 +14,7 @@ object PrintTree extends ActionObject {
     val inStream = if(treeFile == "-"){ Source.stdin } else {  Source.fromFile(treeFile) }
     val trees = inStream.getLines.mkString("").split(';').filter(x => x.length > 0)
     trees.foreach{ t =>
-      val tree = Newick.Tree(t + ';')
+      val tree = Newick.Tree.fromString(t + ';')
       tree.display
     }
    

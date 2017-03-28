@@ -16,7 +16,7 @@ object GetPanTree extends ActionObject {
     val clusteringFile = args(2)
     val outFile        = args(3)
 
-    var trees       = Source.fromFile(treeFile).getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree(t + ';'))
+    var trees       = Source.fromFile(treeFile).getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
     val protMap     = ProtMap.read(protMapFile)
     val intClusters = MCIReader.readClustering(clusteringFile)._3
     val clustering  = Clustering(intClusters, protMap)
@@ -26,9 +26,9 @@ object GetPanTree extends ActionObject {
     outfd.write("#tree\tnodeID\tnodeName\tcoreClusterIDs\taccessoryClusterIDs\tspecificClusterIDs\n")
 
     trees.indices.foreach{ treeID =>
-      trees(treeID).nodes.indices.filter(nodeID => !trees(treeID).nodes(nodeID).isLeaf).foreach{ nodeID =>
+      trees(treeID).getNodes.indices.filter(nodeID => !trees(treeID).getNode(nodeID).isLeaf).foreach{ nodeID =>
         Console.err.println("Processing node: %d/%s(%d)".format(treeID+1, trees(treeID).getNodeName(nodeID), nodeID))
-        val characterization = clustering.getTaxaSubsetCoreAccSpecific(trees(treeID).nodes(nodeID).leaves.map(l => trees(treeID).getNodeName(l)))
+        val characterization = clustering.getTaxaSubsetCoreAccSpecific(trees(treeID).getNode(nodeID).leaves.map(l => trees(treeID).getNodeName(l)))
         val core    : Array[Int] = characterization.filter{case (id, isc, isa, iss) => isc}.map( c => c._1)
         val acc     : Array[Int] = characterization.filter{case (id, isc, isa, iss) => isa}.map( c => c._1)
         val specific: Array[Int] = characterization.filter{case (id, isc, isa, iss) => iss}.map( c => c._1)

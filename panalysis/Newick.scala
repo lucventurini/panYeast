@@ -30,12 +30,14 @@ object Newick {
 
   /////////////////////////////////////////////////////////////////////////////
   
-  case class Tree(tree: String) {
+  class Tree(nodes: mArray[Node], root: Int) {
  
-    var nodes  = Newick.read(tree).toArray()
-    val root   = 0
     val leaves = nodes.filter(n => n.children.length == 0).map(n => n.id)
-  
+
+    def getNode(nodeID: Int) = this.nodes(nodeID)
+    def getNodes = this.nodes
+    def getRoot = this.root
+
     def display = {
       var stack = mArray((this.root,0))
       var lineStack = mArray.empty[String]
@@ -102,27 +104,68 @@ object Newick {
 
       @tailrec def toNewickHelper(nodeID: Int, newick: String): String = {
         nodeStates(nodeID) += 1
-        //printf("%s(%d),%s(%d), %d -> %s\n".format(this.nodes(nodeID).name, nodeID, if(this.nodes(nodeID).children.length > nodeStates(nodeID)) this.nodes(this.nodes(nodeID).children(nodeStates(nodeID))).name else "*", nodeStates(nodeID), this.nodes(nodeID).parent, newick))
+        //printf("Current Node: %s(%d), Child node to consider %s(%d), %d -> Parent Node ID%s\n".format(this.nodes(nodeID).name, nodeID, if(this.nodes(nodeID).children.length > nodeStates(nodeID)) this.nodes(this.nodes(nodeID).children(nodeStates(nodeID))).name else "*", nodeStates(nodeID), this.nodes(nodeID).parent, newick))
         nodeStates(nodeID) match  {
           case childNodeID if (childNodeID < this.nodes(nodeID).children.length)  => {
             nodeStates(nodeID) match {
-              case 0 => toNewickHelper(this.nodes(nodeID).children(nodeStates(nodeID)), newick + "(")
-              case _ => toNewickHelper(this.nodes(nodeID).children(nodeStates(nodeID)), newick + ",")
+              case 0 => toNewickHelper(this.nodes(nodeID).children(nodeStates(nodeID)), newick + "(") // We are the first child node here now
+              case _ => toNewickHelper(this.nodes(nodeID).children(nodeStates(nodeID)), newick + ",") // We are not the first child node here now
             }
           }
           case _ => {
             this.nodes(nodeID).parent match {
-              case -1 => newick + "%s%s%s;".format(if (nodeStates(nodeID) == 0) "" else ") ", this.nodes(nodeID).getNewickName, if (this.nodes(nodeID).length != 0.0) ":%f".format(this.nodes(nodeID).length) else "")
-              case _  => toNewickHelper(this.nodes(nodeID).parent, newick + "%s%s%s".format( if (nodeStates(nodeID) == 0) "" else ") ", this.nodes(nodeID).getNewickName, if (this.nodes(nodeID).length != 0.0) ":%f".format(this.nodes(nodeID).length) else ""))
+              case -1 => newick + "%s%s%s;".format(if (nodeStates(nodeID) == 0) "" else ") ", this.nodes(nodeID).getNewickName, if (this.nodes(nodeID).length != 0.0) ":%f".format(this.nodes(nodeID).length) else "") // We have reached the root node
+              case _  => toNewickHelper(this.nodes(nodeID).parent, newick + "%s%s%s".format( if (nodeStates(nodeID) == 0) "" else ") ", this.nodes(nodeID).getNewickName, if (this.nodes(nodeID).length != 0.0) ":%f".format(this.nodes(nodeID).length) else "")) // We just returned from the last child. Go back to the parent
             }
           }
         }
       }
       toNewickHelper(this.root, "") 
     }
-  
+
+    /////////////////////////////////////////////////////////////////////////////
+
+    def outGroupRoot(outGroup: String) = {
+      val outGroupID = this.nodes(this.nodes.indexWhere( n => {n.name == outGroup})).id
+      val outGroupNode = this.nodes(outGroupID)
+
+      var nodes = this.nodes :+ Node(this.nodes.length, "OutGroupRoot", Map.empty[String,String], 0.0, Array(outGroupID, this.nodes(outGroupID).parent), this.leaves.toArray, -1)
+
+      // Set parent of outGroupNode to new root node
+      nodes(outGroupID) =  Node(outGroupNode.id, outGroupNode.name, outGroupNode.annots, outGroupNode.length, outGroupNode.children, outGroupNode.leaves, this.nodes.length)
+
+      @tailrec def reRootHelper(nodes: mArray[Node], nodeID: Int, comeFromNodeID: Int): mArray[Node] = {
+        val thisNode = nodes(nodeID)
+        val newChildren = if (nodeID == this.root) {
+          thisNode.children.filter(c => !nodes(comeFromNodeID).children.contains(c) && c != comeFromNodeID)
+        } else {
+          thisNode.children.filter(c => !nodes(comeFromNodeID).children.contains(c) && c != comeFromNodeID) :+ thisNode.parent
+        }
+
+        nodes(nodeID) = Node(thisNode.id, thisNode.name, thisNode.annots, thisNode.length, newChildren, Array.empty[Int], comeFromNodeID)
+
+        if (nodeID == this.root) {
+          nodes
+        } else {
+          reRootHelper(nodes, thisNode.parent, nodeID)
+        }
+      }
+      new Newick.Tree(reRootHelper(nodes, this.nodes(outGroupID).parent, this.nodes.length), this.nodes.length)
+    }
   }
-  
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  // Companion
+  object Tree {
+
+    def fromString(tree: String) = {
+      val nodes = Newick.read(tree).toArray()
+      new Newick.Tree(nodes, 0)
+    }
+
+  }
+
   /////////////////////////////////////////////////////////////////////////////
 
   def read(text: String) = {

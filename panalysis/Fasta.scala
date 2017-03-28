@@ -40,6 +40,7 @@ object Fasta {
         case 'g' => 2
         case 't' => 3
         case 'n' => 4
+        case '*' => 5
       }
     }
 
@@ -52,6 +53,7 @@ object Fasta {
         case 2 => 'g'
         case 3 => 't'
         case 4 => 'n'
+        case 5 => '*'
       }
     }
 
