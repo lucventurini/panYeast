@@ -38,18 +38,22 @@ rule tsne_plot:
 
 rule pancore_tree:
   input:
-    tree = rules.fasttree_annotate_inodes.output.tree,
+    tree = rules.fasttree_wrapper.output.tree,
     clust   = rules.orthofinder.output.mci_output,
-    protmap = rules.orthofinder.output.protmap
+    protmap = rules.orthofinder.output.protmap,
+    tree_names = rules.tree_names.output.name_map
   output:
-    tree = "%s/tree/tree.newick" % __PANALYSIS_OUTDIR__
+    tree = "%s/tree/pantree.newick" % __PANALYSIS_OUTDIR__,
+    tree_named = "%s/tree/pantree_names.newick" % __PANALYSIS_OUTDIR__
   params:
     install_dir = INSTALL_DIR,
     rule_outdir = __PANALYSIS_OUTDIR__
   shell: """
     mkdir -p {params.rule_outdir}
-    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar addpantotree {input.tree} {input.protmap} {input.clust} {output.tree} 
-    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar printTree {output.tree}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar addpantotree {input.tree} {input.protmap} {input.clust} {output.tree}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar changeNodeNamesTree {output.tree} {input.tree_names} {output.tree_named}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar printTree {output.tree_named}
+    
   """
 
 rule panalysis:

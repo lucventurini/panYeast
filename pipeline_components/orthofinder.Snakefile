@@ -34,11 +34,11 @@ rule orthofinder_diamond_mkdb:
     speciesids  = "%s/input/Results/WorkingDirectory/SpeciesIDs.txt"% __ORTHOFINDER_OUTDIR__
   params:
     rule_outdir = "%s" % __ORTHOFINDER_OUTDIR__,
-    diamond_k = tconfig["diamond_k"]
+    orthofinder_params = tconfig["orthofinder_blast_params"]
   shell: """
-    dorthofinder.py -f {params.rule_outdir}/input --diamond --max-target-seqs {params.diamond_k} -op --constOut \
+    dorthofinder.py -f {params.rule_outdir}/input {params.orthofinder_params} -op --constOut \
       | tee {params.rule_outdir}/dorthofinder.f.log \
-      | grep "diamond blastp" \
+      | grep "diamond blastp\|blastp -outfmt" \
       > {output.diamond_cmds}
   """
 
@@ -73,7 +73,7 @@ rule orthofinder_mcl:
   threads: 8
   params:
     blast_dir = "%s/input/Results/WorkingDirectory/" % __ORTHOFINDER_OUTDIR__,
-    of_params = tconfig["orthofinder_params"] 
+    of_params = tconfig["orthofinder_mcl_params"] 
   shell: """
     dorthofinder.py -a {threads} -b {params.blast_dir} {params.of_params} -og --constOut
   """

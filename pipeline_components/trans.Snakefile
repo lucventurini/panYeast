@@ -74,7 +74,7 @@ rule gen_trans:
     trans_fasta = "%s/generated_trans.{asm}.fa" % __TRANS_OUTDIR__
   threads: 1
   shell: """
-    gffread -w {output.trans_fasta}.pre -g {input.asm} {input.gff}
+    gffread -V -J -w {output.trans_fasta}.pre -g {input.asm} {input.gff}
     awk '{{ if (substr($0,1,1) == ">") {{ split($0,a," "); print a[1]}} else {{ print $0 }}}}' {output.trans_fasta}.pre > {output.trans_fasta}
   """
 

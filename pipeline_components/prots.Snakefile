@@ -44,7 +44,13 @@ rule generated_prots:
     fa = "%s/generated_prot.{asm}.fa"% (__PROTS_OUTDIR__)
   shell: """
     gffread -y {output.fa}.orig -g {input.asm} {input.gff}
-    sed -e 's/^>\([^ ]\+\).*/>{wildcards.asm}|\1/' {output.fa}.orig > {output.fa}
+    # Remove the proteins with STOP codons in the middle of the gene...
+    sed -e 's/^>\([^ ]\+\).*/>\\1/' {output.fa}.orig \
+     | tr '\n>' '\t\n' \
+     | sed -e 's/[.][\t]\?$//' \
+     | grep -v '[.]' \
+     | tr '\n\t' '>\n'  \
+     > {output.fa}
   """
 
 ###############################################################################

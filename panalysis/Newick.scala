@@ -38,6 +38,8 @@ object Newick {
     def getNodes = this.nodes
     def getRoot = this.root
 
+    ///////////////////////////////////////////////////////////////////////////
+
     def display = {
       var stack = mArray((this.root,0))
       var lineStack = mArray.empty[String]
@@ -46,7 +48,7 @@ object Newick {
         val (cNode, level)  = stack.takeRight(1)(0)
         stack.trimEnd(1)
         lineStack.append("%s>%s".format(("          "*level)+"+-%s-".format( if (this.nodes(cNode).length != 0.0) "%1.5f".format(this.nodes(cNode).length) else "-------"), this.nodes(cNode).getDisplayName))
-        stack ++= this.nodes(cNode).children.map( cid => (cid, level+1))
+        stack ++= this.nodes(cNode).children.sortBy( c => this.nodes(c).leaves.length).reverse.map( cid => (cid, level+1))
       }
 
       // Add the upwards pipes if necessary
@@ -150,7 +152,9 @@ object Newick {
           reRootHelper(nodes, thisNode.parent, nodeID)
         }
       }
-      new Newick.Tree(reRootHelper(nodes, this.nodes(outGroupID).parent, this.nodes.length), this.nodes.length)
+      // Only way I can figure out to get the leaves right at the moment...
+      // Probably superfluous.
+      Newick.Tree.fromString(new Newick.Tree(reRootHelper(nodes, this.nodes(outGroupID).parent, this.nodes.length), this.nodes.length).toNewick)
     }
   }
 

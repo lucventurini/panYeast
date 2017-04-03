@@ -20,11 +20,12 @@ tconfig={
   "augustus_species" : "saccharomyces_cerevisiae_S288C",
   "augustus_params"  : "",
 
-    # DIAMOND OPTIONS (inside orthofinder)
-  "diamond_k" : "%d" % 10,
+    # Orthofinder options
+  "orthofinder_blast_params" : "--diamond --max-target-seqs 10",
+  "orthofinder_mcl_params"   : "--louvain",
 
-  "orthofinder_params" : "--louvain",
-
+    # Phylogenetic tree options
+  #"outgroup_species : "", # Which organism to use as an outgroup?
   "fasttree_params" : "-fastest -gtr"
 
   

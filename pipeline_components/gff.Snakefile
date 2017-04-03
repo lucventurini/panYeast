@@ -12,5 +12,5 @@ rule rename_given_gff:
       zcat {input.gff}
     else
       cat {input.gff}
-    fi | sed -e "s/\([= ]\)\([0-9]\+\)/\\1{params.geneid_prefix}|\\2/g"  {input.gff} > {output.gff}
+    fi | sed -e "s/\(\(ID\|Parent\)[=]\)\([^;]\+\)/\\1{params.geneid_prefix}|\\3/g"  > {output.gff}
   """

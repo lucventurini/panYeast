@@ -11,6 +11,7 @@ object mainClass {
                 "addPanToTree"     -> AddPanToTree,
                 "getPanTree"       -> GetPanTree,
                 "reRootTree"       -> ReRootTree,
+                "changeNodeNamesTree" -> ChangeNodeNamesTree,
                 "test"             -> Test).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////
