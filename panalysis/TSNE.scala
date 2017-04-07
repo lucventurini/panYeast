@@ -13,7 +13,7 @@ object TSNE extends ActionObject {
     val clusteringFile = args(2)
     val outFile        = args(3)
 
-    val protMap     = ProtMap.read(protMapFile)
+    val protMap     = ProtMap(protMapFile)
     val intClusters = MCIReader.readClustering(clusteringFile)._3
     val clustering  = Clustering(intClusters, protMap)
 

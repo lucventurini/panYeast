@@ -17,10 +17,10 @@ object AddPanToTree extends ActionObject {
     val outFile        = args(3)
 
     var trees       = Source.fromFile(treeFile).getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
-    val protMap     = ProtMap.read(protMapFile)
+    val protMap     = ProtMap(protMapFile)
     val intClusters = MCIReader.readClustering(clusteringFile)._3
     val clustering  = Clustering(intClusters, protMap)
-    val taxaMap     = ProtMap.protMapTaxa(protMap).zipWithIndex.map{ case (t,i) => t -> i}.toMap
+    val taxaMap     = protMap.taxa.zipWithIndex.map{ case (t,i) => t -> i}.toMap
 
     trees.indices.foreach{ treeID =>
       val rootLeaves = trees(treeID).leaves

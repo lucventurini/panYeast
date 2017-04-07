@@ -13,7 +13,7 @@ rule braker_align_gen_index:
     rule_outdir = __BRAKER_OUTDIR__
   shell: """
     mkdir {params.rule_outdir}/aln.{wildcards.asm}.idx
-    STAR --runMode genomeGenerate --genomeDir {output.index} --genomeFastaFiles {input.genome} 
+    STAR --runMode genomeGenerate --genomeDir {output.index} --genomeFastaFiles {input.asm} 
   """
 
 ###############################################################################

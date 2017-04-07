@@ -1,17 +1,18 @@
 package panalysis {
 
 case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
-                      protMap:Array[Protein],
+                      protMap: ProtMap,
                       coreRange: Utils.NumberRange = Utils.NumberRange(0.90, 1.0),
                       accRange: Utils.NumberRange = Utils.NumberRange(0.05, 0.90),
                       specific: Double = 0.95) {
 
-  val taxa             = ProtMap.protMapTaxa(protMap)
+  val taxa             = protMap.taxa
   val clusters         = intClusters.map(c => c.toProtein(protMap))
   val paraClusters     = clusters.map(_.toParaCluster)
   val taxaParaClusters = paraClusters.map(_.indexByTaxa(taxa))
   val panGenome        = sortByClusterSizes
   val taxaMap          = taxa.zipWithIndex.map{ case (t,i) => t -> i}.toMap
+  val nprots           = intClusters.map(c => c.cluster.length).foldLeft(0){case (a,b) => a+b}
 
   ///////////////////////////////////////////////////////////////////////////
 
@@ -87,6 +88,23 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
   }
 
   ///////////////////////////////////////////////////////////////////////////
+
+  def cmpClust(c2: Clustering) = {
+
+    this.clusters.par.map{ c =>
+      c2.clusters.par.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  c.cluster.length.toDouble
+    }.foldLeft(0.toDouble){case (a,b) => a+b} / this.nprots.toDouble
+
+  }
+
+  ///////////////////////////////////////////////////////////////////////////
+
+  def cmpParaClust(c2: Clustering) = {
+    this.paraClusters.par.map{ c =>
+      c2.paraClusters.par.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  c.nNonEmptyTaxa.toDouble
+    }.foldLeft(0.toDouble){case (a,b) => a+b} / this.nprots.toDouble
+
+  }
 
 
   ///////////////////////////////////////////////////////////////////////////

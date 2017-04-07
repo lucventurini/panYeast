@@ -6,7 +6,7 @@ __RUN_DIR__             = "%s/run/" % WORKDIR
 
 __AUGUSTUS_OUTDIR__   = "%s/augustus" % __RUN_DIR__
 __BRAKER_OUTDIR__     = "%s/braker" % __RUN_DIR__
-__GIVEN_GFF_OUTDIR__  = "%s/given_gff" % __RUN_DIR__
+__GFF_OUTDIR__  = "%s/given_gff" % __RUN_DIR__
 __GIVEN_ASM_OUTDIR__  = "%s/given_asm" % __RUN_DIR__
 __PROTS_OUTDIR__      = "%s/prots" % __RUN_DIR__
 __TRANS_OUTDIR__      = "%s/trans" % __RUN_DIR__
@@ -25,6 +25,7 @@ __FASTTREE_OUTDIR__  = "%s/fasttree" % __RUN_DIR__
 __PANALYSIS_OUTDIR__  = "%s/panalysis" % __RUN_DIR__
 
 
+__EXTRACT_OUTDIR__ = "%s/extract" % __RUN_DIR__
 
 __LOGS_OUTDIR__       = "%s/logs" % __RUN_DIR__
 
@@ -56,3 +57,5 @@ include: "%s/clustalo.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/fasttree.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/panalysis.Snakefile" % __PIPELINE_COMPONENTS__
 
+
+include: "%s/extract.Snakefile"% __PIPELINE_COMPONENTS__

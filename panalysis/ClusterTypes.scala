@@ -82,6 +82,15 @@ object ClusterTypes {
 
     /////////////////////////////////////////////////////////////////////////////
 
+    def overlap(c2: ProteinCluster) = {
+      (this.cluster.map(p => p.toString).toSet & c2.cluster.map(p => p.toString).toSet).size
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+
+    def fMeasureComponent(c2: ProteinCluster) = {
+      (2.toDouble*this.overlap(c2).toDouble) / (c2.cluster.length + this.cluster.length).toDouble
+    }
 
   }
 
@@ -125,13 +134,24 @@ object ClusterTypes {
 
     /////////////////////////////////////////////////////////////////////////////
 
+    def overlap(c2: ProteinParaCluster) = {
+      this.cluster.indices.map{ i =>
+        if ((this.cluster(i).map(p => p.toString).toSet & c2.cluster(i).map(p => p.toString).toSet).size > 1) 1 else 0
+      }.foldLeft(0){case (a,b) => a+b}
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+
+    def fMeasureComponent(c2: ProteinParaCluster) = {
+      (2.toDouble*this.overlap(c2).toDouble) / (c2.nNonEmptyTaxa + this.nNonEmptyTaxa).toDouble
+    }
   }
 
   ///////////////////////////////////////////////////////////////////////////////
 
 
   case class IntCluster(id: Int, cluster: Array[Int]) extends Cluster[Int](id, cluster) {
-    def toProtein(protMap: Array[Protein]) = {
+    def toProtein(protMap: ProtMap) = {
       ProteinCluster(this.id, this.cluster.map(p => protMap(p)))
     }
   }
@@ -145,7 +165,7 @@ object ClusterTypes {
 
     /////////////////////////////////////////////////////////////////////////////
 
-    def toProtein(protMap: Array[Protein]) = {
+    def toProtein(protMap: ProtMap) = {
       ProteinParaCluster(this.id, this.cluster.map(pc => pc.map(p => protMap(p))), this.taxaIndexed)
     }
   }

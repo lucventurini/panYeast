@@ -56,26 +56,19 @@ rule given_trans:
 ###############################################################################
 
 
-def gen_trans_gff(wildcards):
-  if "gff" in config["data"][wildcards.asm]:
-    return "%s/renamed.%s.gff" % (__GIVEN_GFF_OUTDIR__, wildcards.asm)
-  if ("rnaseq" in config["data"][wildcards.asm]):
-    return "%s/genes.braker.%s.gff" % (__BRAKER_OUTDIR__, wildcards.asm)
-  else:
-    return "%s/augustus.%s.gff" % (__AUGUSTUS_OUTDIR__, wildcards.asm)
-  #fi
-#edef
-
 rule gen_trans:
   input:
-    gff = lambda wildcards: gen_trans_gff(wildcards),
+    gff = lambda wildcards: "%s/genes.%s.gff" % (__GFF_OUTDIR__, wildcards.asm),
     asm = lambda wildcards: "%s/asm.%s.fa" % (__GIVEN_ASM_OUTDIR__, wildcards.asm)
   output:
     trans_fasta = "%s/generated_trans.{asm}.fa" % __TRANS_OUTDIR__
   threads: 1
   shell: """
-    gffread -V -J -w {output.trans_fasta}.pre -g {input.asm} {input.gff}
+    gffread -w {output.trans_fasta}.pre -g {input.asm} {input.gff}
     awk '{{ if (substr($0,1,1) == ">") {{ split($0,a," "); print a[1]}} else {{ print $0 }}}}' {output.trans_fasta}.pre > {output.trans_fasta}
   """
 
 ###############################################################################
+
+rule all_trans:
+  input: expand("%s/transcripts.{asm}.fa" % __TRANS_OUTDIR__, asm=config["data"].keys())

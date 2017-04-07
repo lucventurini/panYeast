@@ -52,6 +52,21 @@ object Utils {
 
   ///////////////////////////////////////////////////////////////////////////
 
+  def setParallelismGlobally(numThreads: Int): Unit = {
+    val parPkgObj = scala.collection.parallel.`package`
+    val defaultTaskSupportField = parPkgObj.getClass.getDeclaredFields.find{
+      _.getName == "defaultTaskSupport"
+    }.get
+
+    defaultTaskSupportField.setAccessible(true)
+    defaultTaskSupportField.set(
+      parPkgObj, 
+      new scala.collection.parallel.ForkJoinTaskSupport(
+        new java.util.concurrent.ForkJoinPool(numThreads)
+      ) 
+    )
+  }
+
 }
 
 }

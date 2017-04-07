@@ -2,6 +2,10 @@
 # PREPARE PROTEIN SEQUENCES                                                   #
 ###############################################################################
 
+rule all_prots:
+  input: expand("%s/prots.{asm}.fa" % __PROTS_OUTDIR__, asm=config["data"].keys())
+
+
 ###############################################################################
 
 def prot_wrapper_input(wildcards):
@@ -38,7 +42,7 @@ rule prots_wrapper:
 
 rule generated_prots:
   input:
-    gff = lambda wildcards: "%s/renamed.%s.gff" % (__GIVEN_GFF_OUTDIR__, wildcards.asm),
+    gff = lambda wildcards: "%s/genes.%s.gff" % (__GFF_OUTDIR__, wildcards.asm),
     asm = lambda wildcards: "%s/asm.%s.fa" % (__GIVEN_ASM_OUTDIR__, wildcards.asm)
   output:
     fa = "%s/generated_prot.{asm}.fa"% (__PROTS_OUTDIR__)
@@ -47,10 +51,12 @@ rule generated_prots:
     # Remove the proteins with STOP codons in the middle of the gene...
     sed -e 's/^>\([^ ]\+\).*/>\\1/' {output.fa}.orig \
      | tr '\n>' '\t\n' \
-     | sed -e 's/[.][\t]\?$//' \
-     | grep -v '[.]' \
-     | tr '\n\t' '>\n'  \
-     > {output.fa}
+     | sed -e 's/^\([^\t]\+\)\t/>\\1\\n/' \
+     | sed -e 's/[.]\([\t]\?\)$/\\1/' \
+     | grep -B1 --no-group-separator '^[^>.][^.-]\+$' \
+     | tr '\t' '\n' \
+     | sed -e '/^$/d' \
+     > {output.fa} 
   """
 
 ###############################################################################

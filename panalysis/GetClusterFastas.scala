@@ -15,7 +15,7 @@ object GetClusterFastas extends ActionObject {
     val outPrefix   = args(4)
 
     val fastaMap   = Fasta.readMap(fastaFile)
-    val protMap    = ProtMap.read(protMapFile)
+    val protMap    = ProtMap(protMapFile)
     val clusters   = MCIReader.readClustering(clustFile)._3
     val clustering = Clustering(clusters, protMap)
 

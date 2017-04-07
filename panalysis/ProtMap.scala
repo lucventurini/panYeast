@@ -1,5 +1,16 @@
 package panalysis {
 
+class ProtMap(map: Array[Protein], taxaArray: Array[String]) {
+
+  def apply(i: Int) = {
+    this.map(i)
+  }
+
+  def taxa = this.taxaArray
+  def getMap = this.map
+
+}
+
 object ProtMap {
 
   ///////////////////////////////////////////////////////////////////////////
@@ -7,6 +18,20 @@ object ProtMap {
   def read(protMapFile: String) = {
     io.Source.fromFile(protMapFile).getLines.map(line => line.stripLineEnd.split('\t')).map{case Array(id: String, prot: String) => Protein(prot, id.toInt)}.toArray.sortWith( (p1,p2) => p1.uniqueID < p2.uniqueID)
   }
+
+  ///////////////////////////////////////////////////////////////////////////
+
+  def apply(protMapFile: String) = {
+    val protMap = ProtMap.read(protMapFile)
+    val taxa    = ProtMap.protMapTaxa(protMap)
+    new ProtMap(protMap, taxa)
+  }
+
+  def apply(protMapFile: String, taxa: Array[String]) = {
+    val protMap = ProtMap.read(protMapFile)
+    new ProtMap(protMap, taxa)
+  }
+  
 
   ///////////////////////////////////////////////////////////////////////////
 

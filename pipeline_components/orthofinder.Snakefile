@@ -36,10 +36,12 @@ rule orthofinder_diamond_mkdb:
     rule_outdir = "%s" % __ORTHOFINDER_OUTDIR__,
     orthofinder_params = tconfig["orthofinder_blast_params"]
   shell: """
+    date +"%s" > {params.rule_outdir}/mkdb_start_time
     dorthofinder.py -f {params.rule_outdir}/input {params.orthofinder_params} -op --constOut \
       | tee {params.rule_outdir}/dorthofinder.f.log \
       | grep "diamond blastp\|blastp -outfmt" \
       > {output.diamond_cmds}
+    date +"%s" > {params.rule_outdir}/mkdb_end_time
   """
 
 ###############################################################################
@@ -56,8 +58,10 @@ rule orthofinder_diamond:
   threads: 20
   shell: """
     source {params.basch}
+    date +"%s" > {params.rule_outdir}/blast_start_time
     baschf {input.diamond_cmds} {threads}
     cp {input.diamond_cmds} {output.diamond_completed}
+    date +"%s" > {params.rule_outdir}/blast_end_time
   """
 
 ###############################################################################
@@ -70,12 +74,16 @@ rule orthofinder_mcl:
     speciesids  = rules.orthofinder_diamond_mkdb.output.speciesids
   output:
     mci_output = "%s/input/Results/WorkingDirectory/mci_output.mci" % __ORTHOFINDER_OUTDIR__,
-  threads: 8
+    statistics = "%s/input/Results/WorkingDirectory/Statistics_Overall.csv" % __ORTHOFINDER_OUTDIR__
+  threads: 10
   params:
     blast_dir = "%s/input/Results/WorkingDirectory/" % __ORTHOFINDER_OUTDIR__,
-    of_params = tconfig["orthofinder_mcl_params"] 
+    of_params = tconfig["orthofinder_mcl_params"],
+    rule_outdir = "%s" % __ORTHOFINDER_OUTDIR__
   shell: """
+    date +"%s" > {params.rule_outdir}/mcl_start_time
     dorthofinder.py -a {threads} -b {params.blast_dir} {params.of_params} -og --constOut
+    date +"%s" > {params.rule_outdir}/mcl_end_time
   """
 
 ###############################################################################
@@ -83,13 +91,16 @@ rule orthofinder_mcl:
 rule orthofinder:
   input:
     protmap    = rules.orthofinder_diamond_mkdb.output.sequenceids,
-    mci_output = rules.orthofinder_mcl.output.mci_output
+    mci_output = rules.orthofinder_mcl.output.mci_output,
+    statistics = rules.orthofinder_mcl.output.statistics
   output:
     protmap    = "%s/protmap.tsv" % __ORTHOFINDER_OUTDIR__,
-    mci_output = "%s/orthofinder.mci" % __ORTHOFINDER_OUTDIR__
+    mci_output = "%s/orthofinder.mci" % __ORTHOFINDER_OUTDIR__,
+    statistics = "%s/statistics" % __ORTHOFINDER_OUTDIR__
   shell: """
     cat {input.protmap} \
      | awk -F : '{{gsub(/^[ \t]+/,"",$2);print NR-1 "\t" $2}}' \
      > {output.protmap}
-     cp {input.mci_output} {output.mci_output}
+     ln -sf {input.mci_output} {output.mci_output}
+     ln -sf {input.statistics} {output.statistics}
    """

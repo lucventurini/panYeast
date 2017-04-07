@@ -49,16 +49,54 @@ rule pancore_tree:
     install_dir = INSTALL_DIR,
     rule_outdir = __PANALYSIS_OUTDIR__
   shell: """
-    mkdir -p {params.rule_outdir}
+    mkdir -p {params.rule_outdir}/tree
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar addpantotree {input.tree} {input.protmap} {input.clust} {output.tree}
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar changeNodeNamesTree {output.tree} {input.tree_names} {output.tree_named}
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar printTree {output.tree_named}
     
   """
 
+###############################################################################
+
+rule self_cmp_clust:
+  input:
+    clust   = rules.orthofinder.output.mci_output,
+    protmap = rules.orthofinder.output.protmap
+  output:
+    f_file = '%s/fmeasure/fmeasure_clust' % __PANALYSIS_OUTDIR__
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  threads: 5
+  shell: """
+    mkdir -p {params.rule_outdir}/fmeasure
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar cmpClust clust {input.clust} {input.protmap} {input.clust} {input.protmap} | tee {output.f_file}
+  """
+
+###############################################################################
+
+rule self_cmp_paraclust:
+  input:
+    clust   = rules.orthofinder.output.mci_output,
+    protmap = rules.orthofinder.output.protmap
+  output:
+    f_file = '%s/fmeasure/fmeasure_paraclust' % __PANALYSIS_OUTDIR__
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  threads: 5
+  shell: """
+    mkdir -p {params.rule_outdir}/fmeasure
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar cmpClust paraClust {input.clust} {input.protmap} {input.clust} {input.protmap} | tee {output.f_file}
+  """
+
+###############################################################################
+
 rule panalysis:
   input:
-    tsne    = rules.tsne_plot.output,
-    tree    = rules.pancore_tree.output
+    tsne     = rules.tsne_plot.output,
+    tree     = rules.pancore_tree.output,
+    fmeas_c  = rules.self_cmp_clust.output,
+    fmeas_pc = rules.self_cmp_paraclust.output
 
 

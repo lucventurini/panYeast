@@ -12,6 +12,7 @@ object mainClass {
                 "getPanTree"       -> GetPanTree,
                 "reRootTree"       -> ReRootTree,
                 "changeNodeNamesTree" -> ChangeNodeNamesTree,
+                "cmpClust"         -> CmpClust,
                 "test"             -> Test).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////
