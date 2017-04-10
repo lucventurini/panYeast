@@ -176,11 +176,11 @@ object Newick {
 //      def longestPathHelper(id: Int)
 //    }
 //
-//    def midPointRoot = {
-//
-//      def midPoint = this.midPoint
-//
-//    }
+    def midPointRoot = {
+
+      this
+
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////

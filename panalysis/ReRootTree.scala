@@ -6,9 +6,22 @@ import scala.Console
 
 object ReRootTree extends ActionObject {
 
-  override val description = "Given an outgroup, root a tree"
+  override val description = "Reroot a tree"
 
   override def main(args: Array[String]) = {
+    val actions = Map( "outGroup" -> outGroupRoot _,
+                       "midPoint" -> midPointRoot _).map{ case (x,y) => (x.toLowerCase, y)}
+
+    if (args.length < 1 || args(0).toLowerCase == "help" || !(actions contains args(0).toLowerCase)) {
+      usage
+    } else {
+      actions(args(0).toLowerCase)(args.slice(1, args.length))
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  def outGroupRoot(args: Array[String]) = {
     val treeFile = args(0)
     val outGroup = args(1)
     val outFile  = args(2)
@@ -23,8 +36,31 @@ object ReRootTree extends ActionObject {
     outfd.close()
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+
+  def midPointRoot(args: Array[String]) = {
+    val treeFile = args(0)
+    val outFile  = args(1)
+
+    Console.err.println("Not implemented yet!")
+
+    var trees = Source.fromFile(treeFile).getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
+
+    val outfd = if(outFile == "-") new BufferedWriter(new OutputStreamWriter(System.out, "utf-8")) else new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), "utf-8"))
+
+    trees.map(t => t.midPointRoot).foreach{ t =>
+      outfd.write("\n%s\n".format(t.toNewick))
+    }
+    outfd.close()
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
   override def usage = {
-    println("reRootTree <tree> <outGroup> <outFile>")
+    println("reRootTree <action> <options>")
+    println(" Actions:")
+    println("   outGroup <tree> <outGroup> <outFile>")
+    println("   midPoint <tree> <outFile>")
     println("")
     println(" tree: Tree in newick format '-' for stdin")
     println(" outGroup: Name of node to use as outgroup")
