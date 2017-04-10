@@ -16,6 +16,7 @@ __TRANS_OUTDIR__      = "%s/trans" % __RUN_DIR__
 #__ORTHAGOGUE_OUTDIR__ = "%s/orthagogue" % __RUN_DIR__
 #__MCL_OUTDIR__        = "%s/mcl" % __RUN_DIR__
 
+__INTERPROSCAN_OUTDIR__ = "%s/interproscan" % __RUN_DIR__
 
 __ORTHOFINDER_OUTDIR__ = "%s/orthofinder" % __RUN_DIR__
 
@@ -46,6 +47,7 @@ include: "%s/gff.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/asm.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/prots.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/trans.Snakefile" % __PIPELINE_COMPONENTS__
+include: "%s/interproscan.Snakefile" % __PIPELINE_COMPONENTS__
 
 #include: "%s/diamond.Snakefile" % __PIPELINE_COMPONENTS__
 #include: "%s/orthagogue.Snakefile" %  __PIPELINE_COMPONENTS__
