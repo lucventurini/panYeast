@@ -12,6 +12,7 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
   val taxaParaClusters = paraClusters.map(_.indexByTaxa(taxa))
   val panGenome        = sortByClusterSizes
   val taxaMap          = taxa.zipWithIndex.map{ case (t,i) => t -> i}.toMap
+  val protClustMap     = clusters.indices.map{ c => clusters(c).cluster.map{ p => p -> c}}.flatten.toMap
   val nprots           = intClusters.map(c => c.cluster.length).foldLeft(0){case (a,b) => a+b}
 
   ///////////////////////////////////////////////////////////////////////////
@@ -92,7 +93,8 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
   def cmpClust(c2: Clustering) = {
 
     this.clusters.par.map{ c =>
-      c2.clusters.par.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  c.cluster.length.toDouble
+      val possibleClusters = c.cluster.map( p => c2.protClustMap(p)).distinct map c2.clusters
+      possibleClusters.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  c.cluster.length.toDouble
     }.foldLeft(0.toDouble){case (a,b) => a+b} / this.nprots.toDouble
 
   }
@@ -100,8 +102,9 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
   ///////////////////////////////////////////////////////////////////////////
 
   def cmpParaClust(c2: Clustering) = {
-    this.paraClusters.par.map{ c =>
-      c2.paraClusters.par.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  c.nNonEmptyTaxa.toDouble
+    this.paraClusters.zipWithIndex.par.map{case (c,i) =>
+      val possibleClusters = this.clusters(i).cluster.map(p => c2.protClustMap(p)).distinct map c2.paraClusters
+      possibleClusters.par.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  this.clusters(i).cluster.length
     }.foldLeft(0.toDouble){case (a,b) => a+b} / this.nprots.toDouble
 
   }

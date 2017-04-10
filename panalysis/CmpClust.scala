@@ -19,7 +19,7 @@ object CmpClust extends ActionObject {
     if (args.length < 1 || args(0).toLowerCase == "help" || !(actions contains args(0).toLowerCase)) {
       usage
     } else {
-      actions(args(0))(args.slice(1, args.length))
+      actions(args(0).toLowerCase)(args.slice(1, args.length))
     }
 
   }
@@ -39,7 +39,7 @@ object CmpClust extends ActionObject {
     val clustering2  = Clustering(intClusters2, protMap2)
 
     val f = clustering1.cmpClust(clustering2)
-    println("F:" + f)
+    println("Fc:" + f)
   }
 
   def actionParaClust(args: Array[String]) = { 
@@ -57,7 +57,7 @@ object CmpClust extends ActionObject {
     val clustering2  = Clustering(intClusters2, protMap2)
 
     val f = clustering1.cmpParaClust(clustering2)
-    println("F:" + f )
+    println("Fpc:" + f )
   }
 
   def actionTree(args: Array[String]) = {

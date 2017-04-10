@@ -136,7 +136,8 @@ object ClusterTypes {
 
     def overlap(c2: ProteinParaCluster) = {
       this.cluster.indices.map{ i =>
-        if ((this.cluster(i).map(p => p.toString).toSet & c2.cluster(i).map(p => p.toString).toSet).size > 1) 1 else 0
+        val ov = this.cluster(i).map(p => p.toString).toSet & c2.cluster(i).map(p => p.toString).toSet
+        if (ov.size >= 1) 1 else 0
       }.foldLeft(0){case (a,b) => a+b}
     }
 

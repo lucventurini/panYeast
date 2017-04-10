@@ -156,6 +156,31 @@ object Newick {
       // Probably superfluous.
       Newick.Tree.fromString(new Newick.Tree(reRootHelper(nodes, this.nodes(outGroupID).parent, this.nodes.length), this.nodes.length).toNewick)
     }
+
+    /////////////////////////////////////////////////////////////////////////////
+
+//    def longestPath = {
+//      var h = mArray.fill[Float](this.nodes.length)(-1)
+//      var p = mArray.fill[Array[Int]](this.nodes.length)(Array.empty[Int])
+//
+//      def longestPathHelper(id: Int) = {
+//        h(id) match {
+//          case -1 => longestPathHelper
+//        }
+//      }
+//
+//    }
+//
+//    def midPoint = {
+//      var H = mArray.fill[Float](this.nodes.length)(0.0)
+//      def longestPathHelper(id: Int)
+//    }
+//
+//    def midPointRoot = {
+//
+//      def midPoint = this.midPoint
+//
+//    }
   }
 
   /////////////////////////////////////////////////////////////////////////////
