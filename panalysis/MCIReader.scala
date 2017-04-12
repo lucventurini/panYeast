@@ -18,7 +18,7 @@ object MCIReader {
     var dim2     = 0
     var count    = 0
 
-    Console.err.println("Reading MCL File")
+    Utils.message("Reading MCL File")
     for(line <- buf) {
       if (line contains "dimensions") {
         val dim     = line.stripLineEnd.trim.split(' ')(1).split('x').map(x => x.toInt)
@@ -42,7 +42,7 @@ object MCIReader {
         }
       }
     }
-    Console.err.println("")
+    Utils.message("")
 
     (dim1, dim2, rows)
 
@@ -66,7 +66,7 @@ object MCIReader {
     var network = new mciNetwork
     var count   = 0
  
-    Console.err.println("Parsing network")
+    Utils.message("Parsing network")
     netLines.map{ arr =>
       val outNode = arr(0).toInt
       arr.drop(1).map(edge => edge.split(':')).map{ case Array(inNode:String, weight:String) => (outNode, inNode.toInt, weight.toFloat)}
@@ -80,7 +80,7 @@ object MCIReader {
         }
       }
     }
-    Console.err.println("")
+    Utils.message("")
     network
   }
 

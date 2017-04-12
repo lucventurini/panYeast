@@ -26,7 +26,8 @@ object ReRootTree extends ActionObject {
     val outGroup = args(1)
     val outFile  = args(2)
 
-    var trees = Source.fromFile(treeFile).getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
+    val inStream = if(treeFile == "-"){ Source.stdin } else {  Source.fromFile(treeFile) }
+    var trees = inStream.getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
 
     val outfd = if(outFile == "-") new BufferedWriter(new OutputStreamWriter(System.out, "utf-8")) else new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), "utf-8"))
 
@@ -42,9 +43,8 @@ object ReRootTree extends ActionObject {
     val treeFile = args(0)
     val outFile  = args(1)
 
-    Console.err.println("Not implemented yet!")
-
-    var trees = Source.fromFile(treeFile).getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
+    val inStream = if(treeFile == "-"){ Source.stdin } else {  Source.fromFile(treeFile) }
+    var trees = inStream.getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
 
     val outfd = if(outFile == "-") new BufferedWriter(new OutputStreamWriter(System.out, "utf-8")) else new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), "utf-8"))
 

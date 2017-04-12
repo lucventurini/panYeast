@@ -73,6 +73,12 @@ object Newick {
 
     /////////////////////////////////////////////////////////////////////////////
 
+    def isLeaf(nodeID: Int) = {
+      this.nodes(nodeID).isLeaf
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+
     def setNodeName(nodeID: Int, newName: String) = {
       val n = this.nodes(nodeID)
       this.nodes(nodeID) = Node(n.id, newName, n.annots, n.length, n.children, n.leaves, n.parent) 
@@ -98,6 +104,11 @@ object Newick {
     def getDisplayNodeName(nodeID: Int) = {
       this.nodes(nodeID).getDisplayName
     }
+    /////////////////////////////////////////////////////////////////////////////
+
+    def getNodeLength(nodeID: Int) = {
+      this.nodes(nodeID).length
+    }
 
     /////////////////////////////////////////////////////////////////////////////
 
@@ -106,7 +117,7 @@ object Newick {
 
       @tailrec def toNewickHelper(nodeID: Int, newick: String): String = {
         nodeStates(nodeID) += 1
-        //printf("Current Node: %s(%d), Child node to consider %s(%d), %d -> Parent Node ID%s\n".format(this.nodes(nodeID).name, nodeID, if(this.nodes(nodeID).children.length > nodeStates(nodeID)) this.nodes(this.nodes(nodeID).children(nodeStates(nodeID))).name else "*", nodeStates(nodeID), this.nodes(nodeID).parent, newick))
+        Debug.message("Current Node: %s(%d), Child node to consider %s(%d), %d -> Parent Node ID%s".format(this.nodes(nodeID).name, nodeID, if(this.nodes(nodeID).children.length > nodeStates(nodeID)) this.nodes(this.nodes(nodeID).children(nodeStates(nodeID))).name else "*", nodeStates(nodeID), this.nodes(nodeID).parent, newick))
         nodeStates(nodeID) match  {
           case childNodeID if (childNodeID < this.nodes(nodeID).children.length)  => {
             nodeStates(nodeID) match {
@@ -127,11 +138,11 @@ object Newick {
 
     /////////////////////////////////////////////////////////////////////////////
 
-    def outGroupRoot(outGroup: String) = {
+    def outGroupRoot(outGroup: String, newRootName: String = "outGroupRoot") = {
       val outGroupID = this.nodes(this.nodes.indexWhere( n => {n.name == outGroup})).id
       val outGroupNode = this.nodes(outGroupID)
 
-      var nodes = this.nodes :+ Node(this.nodes.length, "OutGroupRoot", Map.empty[String,String], 0.0, Array(outGroupID, this.nodes(outGroupID).parent), this.leaves.toArray, -1)
+      var nodes = this.nodes :+ Node(this.nodes.length, newRootName, Map.empty[String,String], 0.0, Array(outGroupID, this.nodes(outGroupID).parent), this.leaves.toArray, -1)
 
       // Set parent of outGroupNode to new root node
       nodes(outGroupID) =  Node(outGroupNode.id, outGroupNode.name, outGroupNode.annots, outGroupNode.length, outGroupNode.children, outGroupNode.leaves, this.nodes.length)
@@ -154,33 +165,127 @@ object Newick {
       }
       // Only way I can figure out to get the leaves right at the moment...
       // Probably superfluous.
-      Newick.Tree.fromString(new Newick.Tree(reRootHelper(nodes, this.nodes(outGroupID).parent, this.nodes.length), this.nodes.length).toNewick)
+      if (this.root == outGroupID) {
+        this
+      } else {
+        Newick.Tree.fromString(new Newick.Tree(reRootHelper(nodes, this.nodes(outGroupID).parent, this.nodes.length), this.nodes.length).toNewick)
+      }
     }
 
     /////////////////////////////////////////////////////////////////////////////
 
-//    def longestPath = {
-//      var h = mArray.fill[Float](this.nodes.length)(-1)
-//      var p = mArray.fill[Array[Int]](this.nodes.length)(Array.empty[Int])
-//
-//      def longestPathHelper(id: Int) = {
-//        h(id) match {
-//          case -1 => longestPathHelper
-//        }
-//      }
-//
-//    }
-//
-//    def midPoint = {
-//      var H = mArray.fill[Float](this.nodes.length)(0.0)
-//      def longestPathHelper(id: Int)
-//    }
-//
+      def topologicalSorting = {
+        var status = Array.fill(this.nodes.length)(0)
+        @tailrec def topologicalSortingHelper(arr: Array[Int], nodeID: Int): Array[Int] = {
+          status(nodeID) match {
+            case it if 0 until this.nodes(nodeID).children.length-1 contains it => {
+              Debug.message("Going to child %s -> %s".format(this.nodes(nodeID).name, this.nodes(this.nodes(nodeID).children(status(nodeID))).name))
+              topologicalSortingHelper(arr :+ this.nodes(nodeID).children(status(nodeID)), this.nodes(nodeID).children(status(nodeID)))
+            }
+            case _ => {
+              this.nodes(nodeID).parent match {
+                case -1 => arr
+                case _  => {
+                  Debug.message("Going to parent %s -> %s".format(this.nodes(nodeID).name, this.nodes(this.nodes(nodeID).parent).name))
+                  status(this.nodes(nodeID).parent) = status(this.nodes(nodeID).parent) + 1
+                  topologicalSortingHelper(arr, this.nodes(nodeID).parent)
+                }
+              }
+            }
+          }
+        }
+
+        topologicalSortingHelper(Array(this.root), this.root)
+      }
+
+      /////////////////////////////////////////////////////////////////////////////
+
+      def longestPath = {
+          // The children include the parent (make undirected)
+        def longestPathHelperUnvisitedChildren(nodeID: Int, visited: Array[Int]) = {
+          {if (this.nodes(nodeID).parent == -1) {
+            this.nodes(nodeID).children
+          } else {
+              this.nodes(nodeID).children :+ this.nodes(nodeID).parent
+          }}.filter(n => ! (visited contains n))
+        }
+
+        @tailrec def longestPathHelper(path: Array[Int], visited: Array[Int], distances: Map[Int,Float], longestPath: Array[Int]): Array[Int] = {
+
+          path.length match {
+            case 0 => longestPath
+            case _ => {
+              val nodeID = path.last
+              Debug.message("%s(%s)".format(path.mkString("->"), this.getNodeName(nodeID)))
+              val children = longestPathHelperUnvisitedChildren(nodeID, visited)
+              Debug.message("Visited: %s".format(visited.map(this.getNodeName).mkString(",")))
+              Debug.message("Potential: %s".format(children.map(this.getNodeName).mkString(",")))
+              val newDistances: Map[Int,Float] = {
+                if (visited contains nodeID) {
+                  distances
+                } else if (path.length > 1) {
+                  distances + (nodeID -> (distances(path(path.length-2)) + (this.nodes(nodeID)).length.toFloat))
+                } else {
+                  distances + (nodeID -> 0.toFloat)
+                }
+              }
+
+              Debug.message(newDistances.mkString(","))
+
+              val newLongestPath = {
+                if (visited contains nodeID) {
+                  longestPath
+                } else if (newDistances(nodeID) > newDistances(longestPath.last)) {
+                  Debug.message("New Longest Path -> %s".format(path.map(this.getNodeName).mkString(",")))
+                  path
+                } else {
+                  longestPath
+                }
+              }
+
+              val newVisited = {
+                if (visited contains nodeID) {
+                  visited
+                } else {
+                  visited :+ nodeID
+                }
+              }
+              Debug.message("")
+              children.length match {
+                  // Go back to parent in path
+                case 0 => longestPathHelper(path.dropRight(1), newVisited, newDistances, newLongestPath)
+                  // Go to a child
+                case _ => longestPathHelper(path :+ children.last, newVisited, newDistances, newLongestPath)
+              }
+            }
+          }
+        }
+
+        val endNode = longestPathHelper(Array(this.root), Array.empty[Int], Map(this.root -> 0.toFloat), Array(this.root)).last
+        longestPathHelper(Array(endNode), Array.empty[Int], Map(endNode -> 0.toFloat), Array(endNode))
+      }
+
+    /////////////////////////////////////////////////////////////////////////////
+
     def midPointRoot = {
 
-      this
+      val longestPath = this.longestPath
+      val distances   = longestPath map this.getNodeLength
+      val cumDist     = distances.scanLeft(0.toDouble)(_ + _)
+      val midPoint    = distances.reduce(_ + _) / 2.toFloat
+      val pivot       = longestPath(cumDist.drop(1).span(_ <= midPoint.toDouble)._1.length -1)
+
+      println((longestPath map this.getNodeName).mkString("->"))
+      println(cumDist.mkString("->"))
+      println(midPoint)
+      println(pivot)
+
+      this.outGroupRoot(this.getNodeName(pivot), "midPointRoot")
 
     }
+
+    /////////////////////////////////////////////////////////////////////////////
+
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -237,7 +342,7 @@ object Newick {
       val realName   = nameFields(0)
       val annots: Map[String,String] = if (nameFields.length > 1) nameFields.slice(1,nameFields.length).map(x => x.split('=')).map( arr => arr(0) -> (if (arr.length > 1) arr(1) else "")).toMap else Map.empty[String,String]
 
-      nodes prepend Node(nodeID, realName, annots, length, childIDs.toArray, leafIDs.toArray, parent)
+      nodes prepend Node(nodeID, realName, annots, this.length, childIDs.toArray, leafIDs.toArray, parent)
       nodes
     }
 
@@ -266,7 +371,8 @@ object Newick {
     def children:Parser[List[T]] = "(" ~> repsep(subtree, ",") <~ ")"
     def subtree = children~name~length ^^ { case t~n~l => nf(n,l,t)} | leaf
     def leaf = name~length ^^ {case n~l => nf(n,l,Nil)}
-    def name = opt(quoted | unquoted) ^^ { _.getOrElse("") }
+    def name = opt(startsWithNumber | quoted | unquoted) ^^ { _.getOrElse("") }
+    def startsWithNumber = """([0-9][^):,]*)""".r ^^ { n => n }
     def unquoted = ident
     def quoted = """'([^']|'')*'""".r  ^^ { _.drop(1).dropRight(1).replace("''","'") }
     def length = opt(":" ~> floatingPointNumber) ^^ { _.getOrElse("0").toDouble }

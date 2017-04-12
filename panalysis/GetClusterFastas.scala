@@ -42,7 +42,7 @@ object GetClusterFastas extends ActionObject {
       pc.cluster.flatten.foreach{ p =>
         if(!fastaMap.contains (p.toString)) {
           nSeqsNotFound += 1
-          Console.err.println("Error, did not find %s in cluster %d".format(p.toString, pc.id))
+          Utils.error("Did not find %s in cluster %d".format(p.toString, pc.id))
         }
       }
       nSeqsNotFound == 0

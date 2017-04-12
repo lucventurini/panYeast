@@ -8,8 +8,13 @@ object Test extends ActionObject {
   override val description = "Run a test"
 
   val tops = Map("checkFastaCompression" -> checkFastaCompression _,
-                 "checkReadFasta"        -> checkReadFasta _
+                 "checkReadFasta"        -> checkReadFasta _,
+                 "topologicalSorting"    -> testTopoSort _,
+                 "testLongestPath"       -> testLongestPath _,
+                 "testMidPointRoot"      -> testMidPointRoot _
                  ).map{ case (k,v) => (k.toLowerCase -> v)}
+
+  /////////////////////////////////////////////////////////////////////////////
 
   override def main(args: Array[String]) = {
 
@@ -21,6 +26,8 @@ object Test extends ActionObject {
 
 
   }
+
+  /////////////////////////////////////////////////////////////////////////////
 
   def checkFastaCompression(args: Array[String]) = {
     val seq = "AAAAACCCCCGGGGGTTTTTACACACACTGTGTGAAAAACCCCCGGGGGTTTTTACACACACTGTGTGAAAAACCCCCGGGGGTTTTTACACACACTGTGTGAAAAAC".toLowerCase
@@ -44,6 +51,8 @@ object Test extends ActionObject {
 
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+
   def checkReadFasta(args: Array[String]) = {
     val tmpf  = File.createTempFile("temporary", "fa")
     val outfd = new PrintWriter(new FileWriter(tmpf, false))
@@ -58,7 +67,41 @@ object Test extends ActionObject {
 
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+
+  def testTopoSort(args: Array[String]) = {
+    val tree = Newick.Tree.fromString("((NC,D)A,(E,F)B,X)R;")
+
+    tree.display
+    println(tree.topologicalSorting map tree.getNodeName mkString(","))
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  def testLongestPath(args: Array[String]) = {
+    val tree = Newick.Tree.fromString("((NC:1,D:1)A:1,(E:1,F:1)B:1,X:1)R;")
+
+    tree.display
+    println(tree.longestPath map tree.getNodeName mkString(","))
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  def testMidPointRoot(args: Array[String]) = {
+
+    val tree = Newick.Tree.fromString("(((WC:1,WC2:1)NC:1,D:1)A:1,(E:1,F:1)B:1,X:1)R;")
+
+    tree.display
+    println(tree.longestPath map tree.getNodeName mkString(","))
+
+    tree.midPointRoot.display
+
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
   override def usage = {
+    println("Available tests")
     println(tops.keys.mkString("\n"))
   }
 

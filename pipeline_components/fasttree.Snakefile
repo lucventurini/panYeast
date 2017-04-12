@@ -18,22 +18,10 @@ rule fasttree_annotate_inodes:
     tree = rules.fasttree.output.tree
   output:
     tree = "%s/species.inodes.tree" % __FASTTREE_OUTDIR__
+  params:
+    install_dir = INSTALL_DIR
   shell: """
-    cat {input.tree} \
-     | tr -d '\n' \
-     | sed -e 's/1.000/\\n/g' -e 's/;/\\n;/g' \
-     | awk 'BEGIN{{n=1}}{{
-       if (substr($0,1,1) == ":"){{
-         print "INODE_" n $0;
-         n++
-       }} else if (substr($0,1,1) == ";") {{
-         print "ROOT" $0
-       }} else {{
-         print $0
-       }}
-       }}' \
-     | tr -d '\n' \
-     > {output.tree}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar addinodestotree {input.tree} {output.tree} sup
   """
 
 ###############################################################################
@@ -64,7 +52,7 @@ rule fasttree_wrapper:
   input:
     tree = fasttree_wrapper_input()
   output:
-    tree = "phylogeny.newick"
+    tree = "%s/phylogeny.newick" % __FASTTREE_OUTDIR__
   shell: """
     ln -s {input.tree} {output.tree}
   """

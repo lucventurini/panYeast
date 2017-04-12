@@ -1,6 +1,7 @@
 package panalysis {
 
 import java.io._
+import scala.Console
 
 object Utils {
 
@@ -66,6 +67,10 @@ object Utils {
       ) 
     )
   }
+
+  def message(msg: String, messageType: String = "") = msg.split("\n").foreach(l => Console.err.println("%s%s".format(messageType, l)))
+  def warning(msg: String) = message(msg, "WARNING: ")
+  def error(msg: String) = message(msg, "ERROR: ")
 
 }
 

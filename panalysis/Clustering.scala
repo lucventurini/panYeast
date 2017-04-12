@@ -35,11 +35,11 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
     val taxaIndices    = taxaSubset.map(taxaMap)
     val notTaxaIndices = this.taxa.indices.filter(i => !(taxaIndices contains i)).toArray
     
-    this.taxaParaClusters.map{ pc => 
+    this.taxaParaClusters.par.map{ pc => 
       val percentTaxa    = pc.nSubsetTaxa(taxaIndices).toDouble / taxaIndices.length.toDouble
       val percentNotTaxa = pc.nSubsetTaxa(notTaxaIndices).toDouble / notTaxaIndices.length.toDouble
       (pc.id, this.coreRange.isBetween(percentTaxa), this.accRange.isBetween(percentTaxa), percentTaxa >= this.specific && percentNotTaxa <= (1.0 - this.specific))
-    }
+    }.toArray
 
   }
 
@@ -78,7 +78,7 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
   ///////////////////////////////////////////////////////////////////////////
 
   def tsneMatrix(fn : (Array[Protein]) => Int) = {
-    Console.err.println("%d,%d".format(taxa.length, clusters.length))
+    Debug.message("%d,%d".format(taxa.length, clusters.length))
     var matrix = Array.ofDim[Double](clusters.length,taxa.length)
     taxaParaClusters.foreach{ pc =>
       pc.cluster.zipWithIndex.foreach{ case (c, i) =>
