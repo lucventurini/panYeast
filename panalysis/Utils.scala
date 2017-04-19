@@ -68,7 +68,9 @@ object Utils {
     )
   }
 
-  def message(msg: String, messageType: String = "") = msg.split("\n").foreach(l => Console.err.println("%s%s".format(messageType, l)))
+  ///////////////////////////////////////////////////////////////////////////
+
+  def message(msg: String, messageType: String = "", ln: Boolean =true) = msg.split("\n").foreach(l => Console.err.print("%s%s%s".format(messageType, l, if (ln) "\n" else "")))
   def warning(msg: String) = message(msg, "WARNING: ")
   def error(msg: String) = message(msg, "ERROR: ")
 

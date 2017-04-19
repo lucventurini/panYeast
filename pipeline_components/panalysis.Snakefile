@@ -48,6 +48,7 @@ rule pancore_tree:
   params:
     install_dir = INSTALL_DIR,
     rule_outdir = __PANALYSIS_OUTDIR__
+  threads: 20
   shell: """
     mkdir -p {params.rule_outdir}/tree
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar addpantotree {input.tree} {input.protmap} {input.clust} {output.tree}

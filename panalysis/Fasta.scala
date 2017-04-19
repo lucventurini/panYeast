@@ -79,6 +79,7 @@ object Fasta {
   /////////////////////////////////////////////////////////////////////////////
 
   class groupFastaLinesIterator(iter: BufferedIterator[String]) extends Iterator[Entry] {
+    var nsequences = 0
     def hasNext = iter.hasNext
     def next = {
       if (!iter.hasNext) {
@@ -87,11 +88,16 @@ object Fasta {
 
         @tailrec def untilNext(head: String, seq: String):  Entry = {
           val line = if(iter.hasNext) iter.head else ""
-          
           if (!iter.hasNext || ( line.length > 1 && line.charAt(0) == '>')) {
             if (head.length == 0) {
               untilNext(iter.next.substring(1), "")
             } else {
+              this.nsequences += 1
+              if (nsequences % 5000 == 0){
+                Utils.message("\rProcessed %d sequences".format(nsequences), ln=false)
+              } else if (!iter.hasNext) {
+                Utils.message("\rProcessed %d sequences".format(nsequences))
+              }
               Entry(head, FastaSeq.fromString(seq))
             }
           } else {

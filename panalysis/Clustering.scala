@@ -1,10 +1,7 @@
 package panalysis {
 
 case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
-                      protMap: ProtMap,
-                      coreRange: Utils.NumberRange = Utils.NumberRange(0.90, 1.0),
-                      accRange: Utils.NumberRange = Utils.NumberRange(0.05, 0.90),
-                      specific: Double = 0.95) {
+                      protMap: ProtMap) {
 
   val taxa             = protMap.taxa
   val clusters         = intClusters.map(c => c.toProtein(protMap))
@@ -30,16 +27,20 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
 
   ///////////////////////////////////////////////////////////////////////////
 
-  def getTaxaSubsetCoreAccSpecific(taxaSubset: Array[String]) = {
+  def getTaxaSubsetCoreAccSpecific(taxaSubset: Array[String],
+                                   coreRange: Utils.NumberRange = Utils.NumberRange(0.90, 1.0),
+                                   accRange: Utils.NumberRange = Utils.NumberRange(0.05, 0.90),
+                                   specific: Double = 0.95) = {
 
     val taxaIndices    = taxaSubset.map(taxaMap)
     val notTaxaIndices = this.taxa.indices.filter(i => !(taxaIndices contains i)).toArray
     
-    this.taxaParaClusters.par.map{ pc => 
+    this.taxaParaClusters.map{ pc => 
+      println(pc.id)
       val percentTaxa    = pc.nSubsetTaxa(taxaIndices).toDouble / taxaIndices.length.toDouble
       val percentNotTaxa = pc.nSubsetTaxa(notTaxaIndices).toDouble / notTaxaIndices.length.toDouble
-      (pc.id, this.coreRange.isBetween(percentTaxa), this.accRange.isBetween(percentTaxa), percentTaxa >= this.specific && percentNotTaxa <= (1.0 - this.specific))
-    }.toArray
+      (pc.id, coreRange.isBetween(percentTaxa), accRange.isBetween(percentTaxa), percentTaxa >= specific && percentNotTaxa <= (1.0 - specific))
+    }
 
   }
 
@@ -92,7 +93,7 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
 
   def cmpClust(c2: Clustering) = {
 
-    this.clusters.par.map{ c =>
+    this.clusters.map{ c =>
       val possibleClusters = c.cluster.map( p => c2.protClustMap(p)).distinct map c2.clusters
       possibleClusters.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  c.cluster.length.toDouble
     }.foldLeft(0.toDouble){case (a,b) => a+b} / this.nprots.toDouble
@@ -102,9 +103,9 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
   ///////////////////////////////////////////////////////////////////////////
 
   def cmpParaClust(c2: Clustering) = {
-    this.paraClusters.zipWithIndex.par.map{case (c,i) =>
+    this.paraClusters.zipWithIndex.map{case (c,i) =>
       val possibleClusters = this.clusters(i).cluster.map(p => c2.protClustMap(p)).distinct map c2.paraClusters
-      possibleClusters.par.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  this.clusters(i).cluster.length
+      possibleClusters.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  this.clusters(i).cluster.length
     }.foldLeft(0.toDouble){case (a,b) => a+b} / this.nprots.toDouble
 
   }

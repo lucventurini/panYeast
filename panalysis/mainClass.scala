@@ -16,6 +16,7 @@ object mainClass {
                 "changeNodeNamesTree" -> ChangeNodeNamesTree,
                 "cmpClust"         -> CmpClust,
                 "addInodesToTree"  -> AddInodesToTree,
+                "resolveParalogs"  -> ResolveParalogs,
                 "test"             -> Test).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -24,7 +25,7 @@ object mainClass {
 
     val (globalOpts, actOpts) = args.span(a => ! (ops contains a.toLowerCase))
 
-    processGlobalOptions(globalOpts.toList)
+    //processGlobalOptions(globalOpts.toList)
     runAction(actOpts)
   }
 
@@ -51,6 +52,8 @@ object mainClass {
     }
 
   }
+
+  ///////////////////////////////////////////////////////////////////////////
 
   def runAction(args: Array[String]) = {
 

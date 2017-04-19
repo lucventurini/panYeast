@@ -33,7 +33,7 @@ object MCIReader {
             if (line contains "$") {
               count += 1
               if (count % reportLines == 0) {
-                Console.err.print("\rProcessed %d lines".format(count))
+                Utils.message("\rProcessed %d lines".format(count), ln=false)
               }
               rows += rowline.filterNot("\n$".toSet).split("[ \t]+").filter(x => x.length > 0)
               rowline = ""

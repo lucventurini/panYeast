@@ -25,7 +25,7 @@ object AddPanToTree extends ActionObject {
 
     trees.indices.foreach{ treeID =>
       val rootLeaves = trees(treeID).leaves
-
+      Debug.message("Processing tree %d".format(treeID))
       trees(treeID).getNodes.indices.filter(nodeID => !trees(treeID).getNode(nodeID).isLeaf).foreach{ nodeID =>
         Utils.message("Processing node: %d/%s(%d)".format(treeID+1, trees(treeID).getNodeName(nodeID), nodeID))
         val characterization = clustering.getTaxaSubsetCoreAccSpecific(trees(treeID).getNode(nodeID).leaves.map(l => trees(treeID).getNodeName(l)))
@@ -44,7 +44,6 @@ object AddPanToTree extends ActionObject {
       outfd.write("\n%s\n".format(t.toNewick))
     }
     outfd.close()
- 
 
   }
 

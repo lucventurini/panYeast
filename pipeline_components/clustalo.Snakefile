@@ -30,7 +30,7 @@ rule extract_orthofinder_clusters:
 
 rule clustalo:
   input:
-    list = "%s/clusters.list.tsv" % __CLUSTALO_OUTDIR__
+    list = rules.extract_orthagogue_clusters.output.list
   output:
     list = "%s/alignments.list.tsv" % __CLUSTALO_OUTDIR__
   threads: 20
@@ -47,7 +47,8 @@ rule clustalo:
       clusterid=`echo $clusterline | cut -d\  -f1`
       clusterfile=`echo $clusterline | cut -d\  -f3`
       alnfile="{params.rule_outdir}/alignments/alignment.$clusterid.fasta"
-      echo "clustalo -i $clusterfile --threads 1 -o $alnfile; echo -e "$alnfile" >> {output.list}" >> {params.rule_outdir}/jobs_file
+      echo "clustalo -i $clusterfile --threads 1 -o $alnfile;" >> {params.rule_outdir}/jobs_file
+      echo -e "$alnfile" >> {output.list}
     done
     baschf {params.rule_outdir}/jobs_file {threads}
   """
@@ -56,7 +57,7 @@ rule clustalo:
 
 rule onelinealn:
   input:
-    list = "%s/alignments.list.tsv" % __CLUSTALO_OUTDIR__
+    list = rules.clustalo.output.list
   output:
     list = "%s/alignments.oneline.list.tsv" % __CLUSTALO_OUTDIR__
   shell: """
@@ -74,7 +75,7 @@ rule onelinealn:
 
 rule mergealignments:
   input:
-    list = "%s/alignments.oneline.list.tsv" % __CLUSTALO_OUTDIR__
+    list = rules.onelinealn.output.list
   output:
     mergedaln = "%s/alignments.fasta" % __CLUSTALO_OUTDIR__
   params:

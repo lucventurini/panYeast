@@ -275,12 +275,48 @@ object Newick {
       val midPoint    = distances.reduce(_ + _) / 2.toFloat
       val pivot       = longestPath(cumDist.drop(1).span(_ <= midPoint.toDouble)._1.length -1)
 
-      println((longestPath map this.getNodeName).mkString("->"))
-      println(cumDist.mkString("->"))
-      println(midPoint)
-      println(pivot)
+      Debug.message((longestPath map this.getNodeName).mkString("->"))
+      Debug.message(cumDist.mkString("->"))
+      Debug.message(midPoint.toString)
+      Debug.message(pivot.toString)
 
       this.outGroupRoot(this.getNodeName(pivot), "midPointRoot")
+
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+
+    def groupParalogs = {
+
+      val allProteins = this.leaves.map(this.getNodeName).map(x => Protein(x))
+      val allTaxa     = allProteins.map( _.taxa)
+
+      def groupParalogsHelperAvailableChildren(nodeID: Int, visited: Set[Int]) = this.nodes(nodeID).children.filter( visited contains _)
+
+      @tailrec def groupParalogsHelper(stack: Array[Int], visited: Set[Int], splits: Array[Int]): Array[Int] = {
+        stack.length match {
+          case 0 => splits
+          case _ => {
+            val nodeID       = stack.last
+            val nodeProteins = this.nodes(nodeID).leaves.map(allProteins)
+            val nodeTaxa     = this.nodes(nodeID).leaves.map(allTaxa)
+            val nParalogs    = nodeTaxa.groupBy(identity).map(_._2.size).foldLeft(0)( math.max(_,_))
+
+            nParalogs match {
+              case 1 => groupParalogsHelper(stack.dropRight(1), visited + nodeID, splits :+ nodeID)
+              case _ => {
+                val nextChildren = groupParalogsHelperAvailableChildren(nodeID, visited)
+                nextChildren.length match {
+                  case 0 => groupParalogsHelper(stack.dropRight(1), visited + nodeID, splits :+ nodeID)
+                  case _ => groupParalogsHelper(stack :+ nextChildren.last, visited + nodeID, splits)
+                }
+              }
+            }
+          }
+        }
+      }
+
+      groupParalogsHelper(Array(this.root), Set.empty[Int], Array.empty[Int])
 
     }
 
