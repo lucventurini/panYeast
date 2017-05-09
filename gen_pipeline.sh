@@ -54,10 +54,10 @@ function verifyOverWrite(){
 function usage(){
   cmd="$1";
 
-  echo "Usage: $cmd <data_desc.tsv> <data_dir> <out_dir>"
+  echo "Usage: $cmd <data.json> <out_dir>"
   echo ""
-  echo "  config.json:   The config file"
-  echo "  out_dir:       Where the pipeline and all its data will reside"
+  echo "  data.json:   The data config file (see example)"
+  echo "  out_dir:     Where the pipeline and all its data will reside"
 }
 
 
