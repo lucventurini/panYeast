@@ -2,6 +2,10 @@ package panalysis {
 
   case class AnnotationEntry(id: String, description: String) {
     override def toString = { "%s: %s".format(this.id, this.description) }
+
+    def ==(that: AnnotationEntry) = { this.id == that.id }
+
+    def equals(that: AnnotationEntry) = { this == that }
   }
 
   class Annotations(annotations: Array[(Int,Protein,AnnotationEntry)])  {

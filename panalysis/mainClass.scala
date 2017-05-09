@@ -18,6 +18,7 @@ object mainClass {
                 "addInodesToTree"  -> AddInodesToTree,
                 "resolveParalogs"  -> ResolveParalogs,
                 "GetClusterGenes"  -> GetClusterGenes,
+                "ValidateClustersWithAnnots" -> ValidateClustersWithAnnots,
                 "test"             -> Test).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////

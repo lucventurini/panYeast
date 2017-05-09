@@ -10,6 +10,15 @@ rule interproscan:
     interproscan.sh -appl Pfam -f TSV --goterms --iprlookup -i {output.annot}.input -o {output.annot}
   """
 
-rule all_annots:
+rule combine_annots:
   input:
     annots = expand("%s/annot.{asm}.tsv" % __INTERPROSCAN_OUTDIR__, asm=config["data"].keys())
+  output:
+    annots = "%s/all_annots.tsv" % __INTERPROSCAN_OUTDIR__
+  shell: """
+    cat {input.annots} > {output.annots}
+  """
+
+rule all_annots:
+  input:
+    annots = rules.combine_annots.output.annots

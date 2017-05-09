@@ -112,12 +112,44 @@ rule self_cmp_paraclust:
 
 ###############################################################################
 
+rule validate_clusters:
+  input:
+    clust   = rules.orthofinder.output.mci_output,
+    protmap = rules.orthofinder.output.protmap,
+    annots  = rules.combine_annots.output.annots
+  output:
+    scores = "%s/annotation_validation/scores" % __PANALYSIS_OUTDIR__
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  shell: """
+    mkdir -p {params.rule_outdir}/annotation_validation
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 ValidateClustersWithAnnots {input.protmap} {input.clust} {input.annots} {output.scores}
+  """
+
+###############################################################################  
+
+rule validate_clusters_plot:
+  input:
+    scores = rules.validate_clusters.output.scores
+  output:
+    plot = "%s/annotation_validation/scores.pdf"
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  shell: """
+    touch {output.plot}
+  """
+
+###############################################################################
+
 rule panalysis:
   input:
-    tsne     = rules.tsne_plot.output,
-    tree     = rules.pancore_tree.output,
-    fmeas_c  = rules.self_cmp_clust.output,
-    fmeas_pc = rules.self_cmp_paraclust.output,
-    pancore  = rules.getpantree_clusters.output
+    tsne      = rules.tsne_plot.output,
+    tree      = rules.pancore_tree.output,
+    fmeas_c   = rules.self_cmp_clust.output,
+    fmeas_pc  = rules.self_cmp_paraclust.output,
+    pancore   = rules.getpantree_clusters.output,
+    clust_val = rules.validate_clusters_plot.output
 
 
