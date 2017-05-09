@@ -54,15 +54,34 @@ object mainClass {
       case "--core-range" :: value1 :: value2 :: tail => {
         Debug.message("Setting core percentage between [%s,%s]".format(value1, value2))
         Clustering.setCoreRange(value1.toDouble, value2.toDouble)
+        processGlobalOptions(tail)
       }
       case "--acc-range" :: value1 :: value2 :: tail => {
         Debug.message("Setting accessory percentage between [%s,%s]".format(value1, value2))
         Clustering.setAccRange(value1.toDouble, value2.toDouble)
+        processGlobalOptions(tail)
       }
       case "--specific" :: value :: tail => {
         Debug.message("Setting specific to %s".format(value))
         Clustering.setSpecific(value.toDouble)
+        processGlobalOptions(tail)
       }
+      case "--annot-idfield" :: value :: tail => {
+        Debug.message("Setting annotation idField to %s".format(value))
+        Annotations.setIDField(value.toInt)
+        processGlobalOptions(tail)
+      }
+      case "--annot-protfield" :: value :: tail => {
+        Debug.message("Setting annotation protField to %s".format(value))
+        Annotations.setProtField(value.toInt)
+        processGlobalOptions(tail)
+      }
+      case "--annot-descfield" :: value :: tail => {
+        Debug.message("Setting annotation descField to %s".format(value))
+        Annotations.setDescField(value.toInt)
+        processGlobalOptions(tail)
+      }
+
       case option :: tail => {
         Utils.error("Unknown Option '%s'".format(option))
         processGlobalOptions(tail)
@@ -103,6 +122,9 @@ object mainClass {
     println("    --core-range <lower> <upper>: The percentage of genomes in a set the cluster must be in for it to be a core gene (Default: [%f,%f])".format(Clustering.coreRange.min, Clustering.coreRange.max))
     println("    --acc-range <lower> <upper>: The percentage of genomes in a set the cluster must be in for it to be a core gene (Default: [%f,%f])".format(Clustering.accRange.min, Clustering.accRange.max))
     println("    --specific <value>: The percentage of genomes within a group should have this cluster (Default %f)".format(Clustering.specific))
+    println("    --annot-idfield <value>: When loading an annotation file, use column <value> as the annotation id (Default %d)".format(Annotations.idField))
+    println("    --annot-protfield <value>: When loading an annotation file, use column <value> as the protein name (Default %d)".format(Annotations.protField))
+    println("    --annot-descfield <value>: When loading an annotation file, use column <value> as the description field (Default %d)".format(Annotations.descField))
     println("")
     println("Actions")
     ops.keys.foreach{ k =>

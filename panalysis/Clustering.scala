@@ -1,7 +1,7 @@
 package panalysis {
 
-class Clustering(intClusters: Array[ClusterTypes.IntCluster],
-                      protMap: ProtMap) {
+class Clustering(val intClusters: Array[ClusterTypes.IntCluster],
+                     protMap: ProtMap) {
 
   val taxa             = protMap.taxa
   val clusters         = intClusters.map(c => c.toProtein(protMap))
@@ -22,14 +22,14 @@ class Clustering(intClusters: Array[ClusterTypes.IntCluster],
 
   def getCore() = {
     val nTaxa = taxa.length
-    taxaParaClusters.filter(_.isCore(nTaxa))
+    this.taxaParaClusters.filter(_.isCore(nTaxa))
   }
 
   ///////////////////////////////////////////////////////////////////////////
 
   def getTaxaSubsetCoreAccSpecific(taxaSubset: Array[String]) = {
 
-    val taxaIndices    = taxaSubset.map(taxaMap)
+    val taxaIndices    = taxaSubset.map(this.taxaMap)
     val notTaxaIndices = this.taxa.indices.filter(i => !(taxaIndices contains i)).toArray
     
     this.taxaParaClusters.map{ pc => 

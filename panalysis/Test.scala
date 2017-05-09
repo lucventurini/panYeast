@@ -11,7 +11,8 @@ object Test extends ActionObject {
                  "checkReadFasta"        -> checkReadFasta _,
                  "topologicalSorting"    -> testTopoSort _,
                  "testLongestPath"       -> testLongestPath _,
-                 "testMidPointRoot"      -> testMidPointRoot _
+                 "testMidPointRoot"      -> testMidPointRoot _,
+                 "testAnnotations"       -> testAnnotations _
                  ).map{ case (k,v) => (k.toLowerCase -> v)}
 
   /////////////////////////////////////////////////////////////////////////////
@@ -21,9 +22,31 @@ object Test extends ActionObject {
     if (args.length < 1 || args(0).toLowerCase == "help" || !(tops contains args(0).toLowerCase)) {
       usage
     } else {
-      tops(args(0).toLowerCase)(args)
+      tops(args(0).toLowerCase)(args.drop(1))
     }
 
+
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  def testAnnotations(args: Array[String]) = {
+
+    val annotationFile = args(0)
+    val protMapFile    = args(1)
+
+    val protMap = ProtMap(protMapFile)
+    val annots  = Annotations(annotationFile, protMap)
+
+    annots.pa.keys.foreach{ k =>
+      println("%s\n  |%s\n".format(k.toString, annots.pa(k).map( _.toString ).mkString("\n  |")))
+    }
+
+    annots.ap.keys.foreach{ k =>
+      println("%s\n  %s".format(k.toString, annots.ap(k).mkString(", ")))
+    }
+
+    println("#P: %d\n#A: %d".format(annots.nAnnotatedGenes, annots.nAnnotations))
 
   }
 

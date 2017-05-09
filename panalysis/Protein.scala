@@ -8,24 +8,28 @@ case class Protein(taxa:String, pid:String, uniqueID:Int) {
     (this.taxa == that.taxa) & (this.pid == that.pid)
   }
 
+  def equals(that: Protein) = { this == that }
+
+  override def hashCode = this.toString.hashCode
+
 }
 
 object Protein {
 
   var delim = "|"
-  var regex_delim = "\\|"
+  def delim_regex = java.util.regex.Pattern.quote(this.delim)
 
   /////////////////////////////////////////////////////////////////////////////
 
   def apply(str:String): Protein = {
-    val values = str.split(regex_delim)
+    val values = str.split(this.delim_regex)
     Protein(values(0), values(1), -1)
   }
 
   /////////////////////////////////////////////////////////////////////////////
 
   def apply(str:String, uniqueID:Int): Protein = {
-    val values = str.split(regex_delim)
+    val values = str.split(this.delim_regex)
     Protein(values(0), values(1), uniqueID)
   }
 
@@ -45,7 +49,7 @@ object Protein {
 
   def isProteinString(str: String) = {
     // Maybe need to extend further?
-    val strsplit = str.split(regex_delim)
+    val strsplit = str.split(this.delim_regex)
     strsplit.length == 2
   }
 

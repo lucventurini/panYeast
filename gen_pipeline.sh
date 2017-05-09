@@ -38,12 +38,13 @@ function verifyOverWrite(){
   if [ -e "$file" ]; then
     warning "The file $file already exists, are you sure you want to overwrite it?"
     resp=`readWhileInvalidChar yn`
-    mv "$file" "$file.bak"
-    warning "The file $file is moved to $file.bak"
     echo ""
-    if [ "$resp" == "n" ]; then
+    if [ "$resp" != "y" ]; then
       error "File cannot be overwritten"
       exit 1
+    else
+      cp "$file" "$file.bak"
+      warning "The file $file is moved to $file.bak"
     fi
   fi
 }

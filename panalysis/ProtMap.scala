@@ -6,6 +6,9 @@ class ProtMap(map: Array[Protein], taxaArray: Array[String]) {
     this.map(i)
   }
 
+  val inverseMap = map.zipWithIndex.map{case (p,i) => (p.toString, i)}.toMap
+  def inverse(p: Protein) = { this.inverseMap(p.toString)}
+
   def taxa = this.taxaArray
   def getMap = this.map
 
@@ -16,7 +19,7 @@ object ProtMap {
   ///////////////////////////////////////////////////////////////////////////
 
   def read(protMapFile: String) = {
-    io.Source.fromFile(protMapFile).getLines.map(line => line.stripLineEnd.split('\t')).map{case Array(id: String, prot: String) => Protein(prot, id.toInt)}.toArray.sortWith( (p1,p2) => p1.uniqueID < p2.uniqueID)
+    io.Source.fromFile(protMapFile).getLines.map(line => line.stripLineEnd.split('\t')).filter( _.length == 2).map{case Array(id: String, prot: String) => Protein(prot, id.toInt)}.toArray.sortWith( (p1,p2) => p1.uniqueID < p2.uniqueID)
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -26,6 +29,8 @@ object ProtMap {
     val taxa    = ProtMap.protMapTaxa(protMap)
     new ProtMap(protMap, taxa)
   }
+
+  ///////////////////////////////////////////////////////////////////////////
 
   def apply(protMapFile: String, taxa: Array[String]) = {
     val protMap = ProtMap.read(protMapFile)
