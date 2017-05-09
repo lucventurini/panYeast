@@ -70,9 +70,14 @@ object Utils {
 
   ///////////////////////////////////////////////////////////////////////////
 
-  def message(msg: String, messageType: String = "", ln: Boolean =true) = msg.split("\n").foreach(l => Console.err.print("%s%s%s".format(messageType, l, if (ln) "\n" else "")))
-  def warning(msg: String) = message(msg, "WARNING: ")
-  def error(msg: String) = message(msg, "ERROR: ")
+  var messagesEnabled = true
+
+  def enableMessages  = { this.messagesEnabled = true }
+  def disableMessages = { this.messagesEnabled = false }
+
+  def message(msg: String, messageType: String = "", ln: Boolean = true, or: Boolean = false) = { if (this.messagesEnabled || or) msg.split("\n").foreach(l => Console.err.print("%s%s%s".format(messageType, l, if (ln) "\n" else ""))) }
+  def warning(msg: String, ln: Boolean =true) = message(msg, "WARNING: ", ln)
+  def error(msg: String, ln: Boolean =true) = message(msg, "ERROR: ", ln)
 
 }
 

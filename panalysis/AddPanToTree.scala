@@ -27,7 +27,7 @@ object AddPanToTree extends ActionObject {
       val rootLeaves = trees(treeID).leaves
       Debug.message("Processing tree %d".format(treeID))
       trees(treeID).getNodes.indices.filter(nodeID => !trees(treeID).getNode(nodeID).isLeaf).foreach{ nodeID =>
-        Utils.message("Processing node: %d/%s(%d)".format(treeID+1, trees(treeID).getNodeName(nodeID), nodeID))
+        Utils.message("\rProcessing node: %d/%d  ".format(nodeID, trees(treeID).getNodes.length), ln=false)
         val characterization = clustering.getTaxaSubsetCoreAccSpecific(trees(treeID).getNode(nodeID).leaves.map(l => trees(treeID).getNodeName(l)))
         val n_core     = characterization.filter{case (id, isc, isa, iss) => isc}.length
         val n_acc      = characterization.filter{case (id, isc, isa, iss) => isa}.length
@@ -36,6 +36,7 @@ object AddPanToTree extends ActionObject {
         trees(treeID).addNodeAnnot(nodeID, "acc", n_acc.toString)
         trees(treeID).addNodeAnnot(nodeID, "sp", n_specific.toString)
       }
+      Utils.message("")
     }
 
     val outfd = if(outFile == "-") new BufferedWriter(new OutputStreamWriter(System.out, "utf-8")) else new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), "utf-8"))

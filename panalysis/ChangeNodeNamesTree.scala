@@ -18,15 +18,12 @@ object ChangeNodeNamesTree extends ActionObject {
 
     var trees   = Source.fromFile(treeFile).getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
     val nameMap = Source.fromFile(nameMapFile).getLines.map(l => l.split("\t")).filter(l => l.length == 2).map(l => l(0) -> l(1)).toMap
-    println(Source.fromFile(nameMapFile).getLines.filter(l => l.split("\t").length == 2).mkString("\n"))
 
     val outfd = if(outFile == "-") new BufferedWriter(new OutputStreamWriter(System.out, "utf-8")) else new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), "utf-8"))
 
-    nameMap.foreach{ case (k,v) => println("%s -> %s".format(k,v))}
     trees.indices.foreach{ treeID =>
       trees(treeID).getNodes.foreach(n => println(n.name))
       trees(treeID).getNodes.indices.filter(nodeID => nameMap contains trees(treeID).getNodeName(nodeID)).foreach{ nodeID =>
-        println("%s -> %s".format(trees(treeID).getNodeName(nodeID), nameMap(trees(treeID).getNodeName(nodeID))))
         trees(treeID).setNodeName(nodeID, nameMap(trees(treeID).getNodeName(nodeID)))
       }
     }

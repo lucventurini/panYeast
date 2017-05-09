@@ -1,6 +1,6 @@
 package panalysis {
 
-case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
+class Clustering(intClusters: Array[ClusterTypes.IntCluster],
                       protMap: ProtMap) {
 
   val taxa             = protMap.taxa
@@ -27,19 +27,15 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
 
   ///////////////////////////////////////////////////////////////////////////
 
-  def getTaxaSubsetCoreAccSpecific(taxaSubset: Array[String],
-                                   coreRange: Utils.NumberRange = Utils.NumberRange(0.90, 1.0),
-                                   accRange: Utils.NumberRange = Utils.NumberRange(0.05, 0.90),
-                                   specific: Double = 0.95) = {
+  def getTaxaSubsetCoreAccSpecific(taxaSubset: Array[String]) = {
 
     val taxaIndices    = taxaSubset.map(taxaMap)
     val notTaxaIndices = this.taxa.indices.filter(i => !(taxaIndices contains i)).toArray
     
     this.taxaParaClusters.map{ pc => 
-      println(pc.id)
       val percentTaxa    = pc.nSubsetTaxa(taxaIndices).toDouble / taxaIndices.length.toDouble
       val percentNotTaxa = pc.nSubsetTaxa(notTaxaIndices).toDouble / notTaxaIndices.length.toDouble
-      (pc.id, coreRange.isBetween(percentTaxa), accRange.isBetween(percentTaxa), percentTaxa >= specific && percentNotTaxa <= (1.0 - specific))
+      (pc.id, Clustering.coreRange.isBetween(percentTaxa), Clustering.accRange.isBetween(percentTaxa), percentTaxa >= Clustering.specific && percentNotTaxa <= (1.0 - Clustering.specific))
     }
 
   }
@@ -103,8 +99,8 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
   ///////////////////////////////////////////////////////////////////////////
 
   def cmpParaClust(c2: Clustering) = {
-    this.paraClusters.zipWithIndex.map{case (c,i) =>
-      val possibleClusters = this.clusters(i).cluster.map(p => c2.protClustMap(p)).distinct map c2.paraClusters
+    this.taxaParaClusters.zipWithIndex.map{case (c,i) =>
+      val possibleClusters = this.clusters(i).cluster.map(p => c2.protClustMap(p)).distinct map c2.taxaParaClusters
       possibleClusters.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  this.clusters(i).cluster.length
     }.foldLeft(0.toDouble){case (a,b) => a+b} / this.nprots.toDouble
 
@@ -115,5 +111,33 @@ case class Clustering(intClusters: Array[ClusterTypes.IntCluster],
 }
 
 
+object Clustering{
+
+  var coreRange: Utils.NumberRange = Utils.NumberRange(0.90, 1.0)
+  var accRange: Utils.NumberRange = Utils.NumberRange(0.05, 0.90)
+  var specific: Double = 1.0
+
+  ///////////////////////////////////////////////////////////////////////////
+
+  def setCoreRange(lower: Double, upper: Double) = {
+    this.coreRange = Utils.NumberRange(lower, upper)
+  }
+
+  def setAccRange(lower: Double, upper: Double) = {
+    this.accRange = Utils.NumberRange(lower, upper)
+  }
+
+  def setSpecific(sp: Double) = {
+    this.specific = sp
+  }
+  
+
+  ///////////////////////////////////////////////////////////////////////////
+
+  def apply(intClusters: Array[ClusterTypes.IntCluster], protMap: ProtMap) = {
+    new Clustering(intClusters, protMap)
+  }
+
+}
 
 }

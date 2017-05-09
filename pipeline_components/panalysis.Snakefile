@@ -59,6 +59,25 @@ rule pancore_tree:
 
 ###############################################################################
 
+rule getpantree_clusters:
+  input:
+    tree = rules.fasttree_wrapper.output.tree,
+    clust   = rules.orthofinder.output.mci_output,
+    protmap = rules.orthofinder.output.protmap,
+    tree_names = rules.tree_names.output.name_map
+  output:
+    pancore_clusters = "%s/pancore/tree_clusters" % __PANALYSIS_OUTDIR__
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  threads: 20
+  shell: """
+    mkdir -p {params.rule_outdir}/pancore
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar GetPanTree {input.tree} {input.protmap} {input.clust} {output.pancore_clusters}
+  """
+
+###############################################################################
+
 rule self_cmp_clust:
   input:
     clust   = rules.orthofinder.output.mci_output,
@@ -98,6 +117,7 @@ rule panalysis:
     tsne     = rules.tsne_plot.output,
     tree     = rules.pancore_tree.output,
     fmeas_c  = rules.self_cmp_clust.output,
-    fmeas_pc = rules.self_cmp_paraclust.output
+    fmeas_pc = rules.self_cmp_paraclust.output,
+    pancore  = rules.getpantree_clusters.output
 
 

@@ -17,6 +17,7 @@ object mainClass {
                 "cmpClust"         -> CmpClust,
                 "addInodesToTree"  -> AddInodesToTree,
                 "resolveParalogs"  -> ResolveParalogs,
+                "GetClusterGenes"  -> GetClusterGenes,
                 "test"             -> Test).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -25,7 +26,7 @@ object mainClass {
 
     val (globalOpts, actOpts) = args.span(a => ! (ops contains a.toLowerCase))
 
-    //processGlobalOptions(globalOpts.toList)
+    processGlobalOptions(globalOpts.toList)
     runAction(actOpts)
   }
 
@@ -40,10 +41,27 @@ object mainClass {
         Debug.message("Debug messages enabled")
         processGlobalOptions(tail)
       }
+      case ("-s" | "--silent") :: tail => {
+        Utils.disableMessages
+        Debug.message("Silent mode entered")
+        processGlobalOptions(tail)
+      }
       case ("-t" | "--threads") :: value :: tail => {
         Utils.setParallelismGlobally(value.toInt)
         Debug.message("Set number of threads to %d".format(value.toInt))
         processGlobalOptions(tail)
+      }
+      case "--core-range" :: value1 :: value2 :: tail => {
+        Debug.message("Setting core percentage between [%s,%s]".format(value1, value2))
+        Clustering.setCoreRange(value1.toDouble, value2.toDouble)
+      }
+      case "--acc-range" :: value1 :: value2 :: tail => {
+        Debug.message("Setting accessory percentage between [%s,%s]".format(value1, value2))
+        Clustering.setAccRange(value1.toDouble, value2.toDouble)
+      }
+      case "--specific" :: value :: tail => {
+        Debug.message("Setting specific to %s".format(value))
+        Clustering.setSpecific(value.toDouble)
       }
       case option :: tail => {
         Utils.error("Unknown Option '%s'".format(option))
@@ -80,7 +98,11 @@ object mainClass {
     println("Usage: panalysis [global options] <action>")
     println("  Global options:")
     println("    -t|--threads <nthreads>: Number of threads to use (may not be used depending upon task)")
-    println("    -d|--debug: Enable debug messages")
+    println("    -d|--debug: Enable debug messages (Default: %s)".format(Debug.enabled.toString))
+    println("    -s|--silent: Do not produce any output except normal program output")
+    println("    --core-range <lower> <upper>: The percentage of genomes in a set the cluster must be in for it to be a core gene (Default: [%f,%f])".format(Clustering.coreRange.min, Clustering.coreRange.max))
+    println("    --acc-range <lower> <upper>: The percentage of genomes in a set the cluster must be in for it to be a core gene (Default: [%f,%f])".format(Clustering.accRange.min, Clustering.accRange.max))
+    println("    --specific <value>: The percentage of genomes within a group should have this cluster (Default %f)".format(Clustering.specific))
     println("")
     println("Actions")
     ops.keys.foreach{ k =>

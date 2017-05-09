@@ -1,6 +1,6 @@
 package panalysis {
 
-object Debug{
+object Debug {
 
   var enabled = false
 
@@ -12,14 +12,14 @@ object Debug{
     this.enabled = false
   }
 
-  def message(msg: String, messageType: String = "DEBUG: ") = {
+  def message(msg: String, messageType: String = "DEBUG: ", ln: Boolean = true) = {
     if (this.enabled) {
-      Utils.message(msg, messageType)
+      Utils.message(msg, messageType, ln=ln, or=true)
     }
   }
 
-  def warning(msg: String) = message(msg, "DEBUG-WARNING: ")
-  def error(msg: String) = message(msg, "DEBUG-ERROR: ")
+  def warning(msg: String, ln: Boolean = true) = message(msg, "DEBUG-WARNING: ", ln=ln)
+  def error(msg: String, ln: Boolean = true) = message(msg, "DEBUG-ERROR: ", ln=ln)
     
 
   }

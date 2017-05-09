@@ -56,6 +56,9 @@ object CmpClust extends ActionObject {
     val clustering1  = Clustering(intClusters1, protMap1)
     val clustering2  = Clustering(intClusters2, protMap2)
 
+    Debug.message(protMap1.taxa.mkString(","))
+    Debug.message(protMap2.taxa.mkString(","))
+
     val f = clustering1.cmpParaClust(clustering2)
     println("Fpc:" + f )
   }
