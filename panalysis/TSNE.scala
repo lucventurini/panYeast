@@ -24,12 +24,14 @@ object TSNE extends ActionObject {
       case "speciesCount"  => clustering.tsneMatrixParalogCounts.transpose
     }
 
-    val isCore = clustering.getCoreLabels.map(x => x.toDouble).toArray
-    val counts = clustering.getCountLabels.map(x => x.toDouble).toArray
-    val labels = Array(isCore, counts).transpose
+    //val isCore = clustering.getCoreLabels.map(x => x.toDouble).toArray
+    //val counts = clustering.getCountLabels.map(x => x.toDouble).toArray
+    //val labels = Array(isCore, counts).transpose
     val result = run(matrix)
 
-    Utils.doubleMatrixToFile(Utils.hcatMatrix(result,labels), outFile, "\t")
+    //Utils.doubleMatrixToFile(Utils.hcatMatrix(result,labels), outFile, "\t")
+    Utils.doubleMatrixToFile(result, outFile, "\t")
+
     
   }
 

@@ -2,6 +2,9 @@ package panalysis {
 
 import java.io._
 import scala.Console
+import scala.io.Source
+import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream}
+import scala.collection.JavaConversions._
 
 object Utils {
 
@@ -16,7 +19,7 @@ object Utils {
   }
 
   def doubleMatrixToFile(mat: Array[Array[Double]], outFile:String, sep:String) = {
-    val bw = new BufferedWriter(new FileWriter(new File(outFile)))
+    val bw = openWrite(outFile)
     mat.map( gene => gene.mkString(sep)).foreach( line => bw.write(line + "\n"))
     bw.close()
   }
@@ -78,6 +81,11 @@ object Utils {
   def message(msg: String, messageType: String = "", ln: Boolean = true, or: Boolean = false) = { if (this.messagesEnabled || or) msg.split("\n").foreach(l => Console.err.print("%s%s%s".format(messageType, l, if (ln) "\n" else ""))) }
   def warning(msg: String, ln: Boolean =true) = message(msg, "WARNING: ", ln)
   def error(msg: String, ln: Boolean =true) = message(msg, "ERROR: ", ln)
+
+  ///////////////////////////////////////////////////////////////////////////
+
+  def openWrite(file: String) = if(file == "-") new BufferedWriter(new OutputStreamWriter(System.out, "utf-8")) else new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"))
+  def openRead(file: String)  = if(file == "-"){ Source.stdin } else {  Source.fromFile(file) }
 
 }
 

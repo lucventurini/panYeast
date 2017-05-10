@@ -20,18 +20,46 @@ rule tsne_trans:
 
 ###############################################################################
 
+rule cluster_features:
+  input:
+    protmap = rules.orthofinder.output.protmap,
+    mci     = rules.orthofinder.output.mci_output,
+    annots  = rules.combine_annots.output.annots
+  output:
+    ngenes      = "%s/tsne/ngenes" % __PANALYSIS_OUTDIR__,
+    nspecies    = "%s/tsne/nspecies" % __PANALYSIS_OUTDIR__,
+    annotscores = "%s/tsne/annotscores" % __PANALYSIS_OUTDIR__,
+    nfunctions  = "%s/tsne/nfunctions" % __PANALYSIS_OUTDIR__,
+    nannotgenes = "%s/tsne/nannotgenes" % __PANALYSIS_OUTDIR__
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  threads: 2
+  shell: """
+    mkdir -p {params.rule_outdir}/tsne
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.ngenes} nGenes
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.nspecies} nSpecies
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.annotscores} annotScores {input.annots}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.nfunctions} nFunctions {input.annots}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.nannotgenes} nAnnotGenes {input.annots}
+  """
+
+
+###############################################################################
+
 rule tsne_plot:
   input:
     tsne_binary = rules.tsne_trans.output.tsne_binary,
-    tsne_count  = rules.tsne_trans.output.tsne_count
+    tsne_count  = rules.tsne_trans.output.tsne_count,
+    features    = rules.cluster_features.output
   output:
     tsne_binary = "%s/tsne/tsne.binary.pdf" % __PANALYSIS_OUTDIR__,
     tsne_count  = "%s/tsne/tsne.count.pdf" % __PANALYSIS_OUTDIR__
   params:
     install_dir = INSTALL_DIR
   shell: """
-    Rscript {params.install_dir}/panalysis/tsneR.R {input.tsne_binary} {output.tsne_binary}
-    Rscript {params.install_dir}/panalysis/tsneR.R {input.tsne_count} {output.tsne_count}
+    Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R raw {input.tsne_binary} {output.tsne_binary}
+    Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R raw {input.tsne_count} {output.tsne_count}
   """
 
 ###############################################################################

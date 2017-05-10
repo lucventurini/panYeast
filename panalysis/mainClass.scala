@@ -19,6 +19,8 @@ object mainClass {
                 "resolveParalogs"  -> ResolveParalogs,
                 "GetClusterGenes"  -> GetClusterGenes,
                 "ValidateClustersWithAnnots" -> ValidateClustersWithAnnots,
+                "GetPanSpecies"    -> GetPanSpecies,
+                "GetClusterFeatures" -> GetClusterFeatures,
                 "test"             -> Test).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////

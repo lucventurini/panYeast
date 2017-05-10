@@ -35,7 +35,7 @@ rule outgroup_root_fasttree:
     install_dir = INSTALL_DIR,
     outgroup    = tconfig["outgroup_species"] if "outgroup_species" in tconfig else ""
   shell: """
-   java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar reRootTree {input.tree} {params.outgroup} {output.tree} 
+   java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar reRootTree outGroup {input.tree} {params.outgroup} {output.tree} 
   """
 
 ###############################################################################

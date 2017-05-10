@@ -2,7 +2,7 @@
 
 scala_classpath="./:./lib:./lib/tsne-2.3.0.jar:./lib/breeze-0.13.jar:./lib/scala-parser-combinators_2.12-1.0.4.jar:./lib/jebl.jar"
 
-scalac="`which scalac` -classpath $scala_classpath -deprecation"
+scalac="`which scalac` -classpath $scala_classpath -deprecation -feature"
 scala="`which scala` -classpath $scala_classpath"
 
 echo "Building PANalysis..."

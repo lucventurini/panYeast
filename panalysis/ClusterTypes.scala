@@ -92,6 +92,10 @@ object ClusterTypes {
       (2.toDouble*this.overlap(c2).toDouble) / (c2.cluster.length + this.cluster.length).toDouble
     }
 
+    val taxa = cluster.map(p => p.taxa).distinct
+
+    def isCore(nTaxa: Int) = { nTaxa == this.taxa.length }
+
   }
 
   ///////////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,7 @@
 package panalysis {
 
 class Clustering(val intClusters: Array[ClusterTypes.IntCluster],
-                     protMap: ProtMap) {
+                 val protMap: ProtMap) {
 
   val taxa             = protMap.taxa
   val clusters         = intClusters.map(c => c.toProtein(protMap))
@@ -27,7 +27,7 @@ class Clustering(val intClusters: Array[ClusterTypes.IntCluster],
 
   ///////////////////////////////////////////////////////////////////////////
 
-  def getTaxaSubsetCoreAccSpecific(taxaSubset: Array[String]) = {
+  def getTaxaSubsetCoreAccSpecific(taxaSubset: Array[String]): Array[(Int,Boolean,Boolean,Boolean)] = {
 
     val taxaIndices    = taxaSubset.map(this.taxaMap)
     val notTaxaIndices = this.taxa.indices.filter(i => !(taxaIndices contains i)).toArray

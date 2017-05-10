@@ -16,7 +16,7 @@ object AddPanToTree extends ActionObject {
     val clusteringFile = args(2)
     val outFile        = args(3)
 
-    val inStream    = if(treeFile == "-"){ Source.stdin } else {  Source.fromFile(treeFile) }
+    val inStream    = Utils.openRead(treeFile)//if(treeFile == "-"){ Source.stdin } else {  Source.fromFile(treeFile) }
     var trees       = inStream.getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
     val protMap     = ProtMap(protMapFile)
     val intClusters = MCIReader.readClustering(clusteringFile)._3
@@ -39,7 +39,7 @@ object AddPanToTree extends ActionObject {
       Utils.message("")
     }
 
-    val outfd = if(outFile == "-") new BufferedWriter(new OutputStreamWriter(System.out, "utf-8")) else new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), "utf-8"))
+    val outfd = Utils.openWrite(outFile)//if(outFile == "-") new BufferedWriter(new OutputStreamWriter(System.out, "utf-8")) else new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), "utf-8"))
 
     trees.foreach{ t =>
       outfd.write("\n%s\n".format(t.toNewick))
