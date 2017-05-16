@@ -1,9 +1,5 @@
 package panalysis {
 
-import scala.io.Source
-import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream}
-import scala.collection.JavaConversions._
-
 object AddPanToTree extends ActionObject {
 
   override val description = "Add Pan genome information to a tree"
@@ -16,8 +12,7 @@ object AddPanToTree extends ActionObject {
     val clusteringFile = args(2)
     val outFile        = args(3)
 
-    val inStream    = Utils.openRead(treeFile)//if(treeFile == "-"){ Source.stdin } else {  Source.fromFile(treeFile) }
-    var trees       = inStream.getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
+    var trees       = Newick.readFile(treeFile)
     val protMap     = ProtMap(protMapFile)
     val intClusters = MCIReader.readClustering(clusteringFile)._3
     val clustering  = Clustering(intClusters, protMap)
@@ -26,7 +21,7 @@ object AddPanToTree extends ActionObject {
     trees.indices.foreach{ treeID =>
       val rootLeaves = trees(treeID).leaves
       Debug.message("Processing tree %d".format(treeID))
-      trees(treeID).getNodes.indices.filter(nodeID => !trees(treeID).getNode(nodeID).isLeaf).foreach{ nodeID =>
+      trees(treeID).getNodes.indices.foreach{ nodeID =>
         Utils.message("\rProcessing node: %d/%d  ".format(nodeID, trees(treeID).getNodes.length), ln=false)
         val characterization = clustering.getTaxaSubsetCoreAccSpecific(trees(treeID).getNode(nodeID).leaves.map(l => trees(treeID).getNodeName(l)))
         val n_core     = characterization.filter{case (id, isc, isa, iss) => isc}.length
@@ -39,7 +34,7 @@ object AddPanToTree extends ActionObject {
       Utils.message("")
     }
 
-    val outfd = Utils.openWrite(outFile)//if(outFile == "-") new BufferedWriter(new OutputStreamWriter(System.out, "utf-8")) else new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), "utf-8"))
+    val outfd = Utils.openWrite(outFile)
 
     trees.foreach{ t =>
       outfd.write("\n%s\n".format(t.toNewick))

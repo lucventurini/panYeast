@@ -43,7 +43,7 @@ class Clustering(val intClusters: Array[ClusterTypes.IntCluster],
   ///////////////////////////////////////////////////////////////////////////
   //
   def getSingleCopyLabels() = {
-    taxaParaClusters.map(_.isSingleCopy)
+    taxaParaClusters.map(_.isSingleCopy).map ( if(_) 1 else 0)
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -104,6 +104,74 @@ class Clustering(val intClusters: Array[ClusterTypes.IntCluster],
       possibleClusters.map( aC => c.fMeasureComponent(aC)).foldLeft(-1.0){case (a,b) => math.max(a,b)} *  this.clusters(i).cluster.length
     }.foldLeft(0.toDouble){case (a,b) => a+b} / this.nprots.toDouble
 
+  }
+
+  ///////////////////////////////////////////////////////////////////////////
+
+  def functionalConsistencyPerCluster(annots: Annotations) = {
+    this.clusters.map{ c =>
+      val nGenes = c.cluster.length.toFloat
+      val annotatedGenes = c.cluster.filter( p => annots.pa contains p.toString)
+      val clusterAnnotations = annotatedGenes.map(p =>annots.pa(p.toString)).flatten.groupBy(identity).mapValues(_.size)
+      Debug.message("Cluster %d: %d".format(c.id, c.cluster.length))
+      Debug.message(clusterAnnotations.map{ case (k,v) => "%s: %d".format(k.toString, v)}.mkString("\n"))
+      clusterAnnotations.map{ case (annot,counts) =>
+         (c.id, annot, c.cluster.length, c.taxa.length, counts, counts.toFloat / nGenes)
+      }
+    }.flatten
+  }
+
+  ///////////////////////////////////////////////////////////////////////////
+
+  def functionalConsistencyScores(annots: Annotations): Array[(Int,Int,Int,Int,Int,Double)] = {
+    this.clusters.map{ c =>
+      val nGenes = c.cluster.length.toFloat
+      val annotatedGenes = c.cluster.filter( p => annots.pa contains p.toString)
+      val clusterAnnotations = annotatedGenes.map(p =>annots.pa(p.toString)).flatten.groupBy(identity).mapValues(_.size)
+      Debug.message("Cluster %d: %d".format(c.id, c.cluster.length))
+      Debug.message(clusterAnnotations.map{ case (k,v) => "%s: %d".format(k.toString, v)}.mkString("\n"))
+      val score = clusterAnnotations.map{ case (annot,counts) =>
+         (counts.toFloat / nGenes)
+      }.foldLeft(0.0)(math.max(_, _))
+
+      (c.id, nGenes.toInt, annotatedGenes.size, c.taxa.length, clusterAnnotations.keys.size, score)
+    }
+  }
+
+  ///////////////////////////////////////////////////////////////////////////
+
+    // GET FEATURES FOR EACH CLUSTER
+
+  def featureIsCore   = { this.clusters.map(c => if (c.isCore(this.protMap.taxa.length)) 1 else 0 ) }
+  def featureIsSingleCopy = { this.paraClusters.map(pc => if(pc.isSingleCopy) 1 else 0 ) }
+  def featureNGenes   = { this.intClusters.map(c => c.cluster.length) }
+  def featureNSpecies = { this.paraClusters.map(c => c.nNonEmptyTaxa) }
+
+
+  def featureAnnotScores(annots: Annotations)  = { this.functionalConsistencyScores(annots).map(x => x._6) }
+  def featureNFunctions(annots: Annotations)   = { this.functionalConsistencyScores(annots).map(x => x._5) }
+  def featureNAnnotGenes(annots: Annotations) = { this.functionalConsistencyScores(annots).map(x => x._4) }
+
+  def featureCoreNode(tree: Newick.Tree) = {
+    tree.topologicalSorting.map{ nodeID =>
+      this.getTaxaSubsetCoreAccSpecific(tree.getNodeLeafNames(nodeID)).map( _._2).toArray
+    }.transpose.map{ c =>
+      c.zipWithIndex.find{ case (c,i) => c } match {
+        case Some((c,i)) => i
+        case None => -1
+      }
+    }
+  }
+
+  def featureSpecificNode(tree: Newick.Tree) = {
+    tree.topologicalSorting.map{ nodeID =>
+      this.getTaxaSubsetCoreAccSpecific(tree.getNodeLeafNames(nodeID)).map( _._4).toArray
+    }.transpose.map{ c =>
+      c.zipWithIndex.find{ case (c,i) => c } match {
+        case Some((c,i)) => i
+        case None => -1
+      }
+    }
   }
 
 

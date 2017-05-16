@@ -19,6 +19,22 @@ rule combine_annots:
     cat {input.annots} > {output.annots}
   """
 
+rule get_go_annots:
+  input:
+    annots = rules.combine_annots.output.annots
+  output:
+    goannots = "%s/go_annots.tsv" % __INTERPROSCAN_OUTDIR__
+  shell: """
+awk 'BEGIN{{ FS = "\t"}}
+     {{n = split($14,goterms,"|")
+      if (n > 0) {{
+        for (goterm in goterms) {{
+          printf "%s\t%s\t%s\\n", goterms[goterm], $1, $13
+        }}
+      }}
+    }}' {input.annots} > {output.goannots}
+  """
+
 rule all_annots:
   input:
     annots = rules.combine_annots.output.annots

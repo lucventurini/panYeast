@@ -12,7 +12,9 @@ object Test extends ActionObject {
                  "topologicalSorting"    -> testTopoSort _,
                  "testLongestPath"       -> testLongestPath _,
                  "testMidPointRoot"      -> testMidPointRoot _,
-                 "testAnnotations"       -> testAnnotations _
+                 "testAnnotations"       -> testAnnotations _,
+                 "printTreeNodes"        -> printTreeNodes _,
+                 "testFDR"               -> testFDR _
                  ).map{ case (k,v) => (k.toLowerCase -> v)}
 
   /////////////////////////////////////////////////////////////////////////////
@@ -93,10 +95,26 @@ object Test extends ActionObject {
   /////////////////////////////////////////////////////////////////////////////
 
   def testTopoSort(args: Array[String]) = {
-    val tree = Newick.Tree.fromString("((NC,D)A,(E,F)B,X)R;")
+    val tree = if (args.length > 0) {
+      Newick.readFile(args(0))(0)
+    } else {
+      Newick.Tree.fromString("((NC,D)A,(E,F)B,X)R;")
+    }
 
     tree.display
     println(tree.topologicalSorting map tree.getNodeName mkString(","))
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  //
+  def printTreeNodes(args: Array[String]) = {
+    val tree = if (args.length > 0) {
+      Newick.readFile(args(0))(0)
+    } else {
+      Newick.Tree.fromString("((NC,D)A,(E,F)B,X)R;")
+    }
+
+    println(tree.getNodes.indices.map( id => "%d: %s".format(id, tree.getNodeName(id))).mkString("\n"))
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -123,10 +141,23 @@ object Test extends ActionObject {
 
   /////////////////////////////////////////////////////////////////////////////
 
+  def testFDR(args: Array[String]) = {
+    
+    val p = if(args.length == 0) {Array(0.01, 0.02, 0.03, 0.04, 0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.0001) } else args.map(_.toDouble)
+
+    println(p.mkString(","))
+    println(Statistics.fdr_bh(p).mkString(","))
+  }
+
+
+  /////////////////////////////////////////////////////////////////////////////
+
   override def usage = {
     println("Available tests")
     println(tops.keys.mkString("\n"))
   }
+
+  /////////////////////////////////////////////////////////////////////////////
 
 }
 

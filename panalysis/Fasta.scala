@@ -41,6 +41,7 @@ object Fasta {
         case 't' => 3
         case 'n' => 4
         case '*' => 5
+        case _   => { Utils.error("The character '%c' is not a valid DNA base. Will be interpreted as 'n'.".format(base)); base2bit('n') }
       }
     }
 
@@ -54,6 +55,7 @@ object Fasta {
         case 3 => 't'
         case 4 => 'n'
         case 5 => '*'
+        case _ => 'N'
       }
     }
 

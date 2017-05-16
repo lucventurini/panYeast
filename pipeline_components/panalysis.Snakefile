@@ -1,3 +1,18 @@
+###############################################################################
+
+rule get_cluster_genes:
+  input:
+    protmap = rules.orthofinder.output.protmap,
+    mci     = rules.orthofinder.output.mci_output
+  output:
+    cluster_genes  = "%s/genes/cluster_genes" % __PANALYSIS_OUTDIR__,
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  shell: """
+    mkdir -p {params.rule_outdir}/tsne
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar getClusterGenes {input.protmap} {input.mci} {output.cluster_genes}
+  """
 
 ###############################################################################
 
@@ -24,24 +39,33 @@ rule cluster_features:
   input:
     protmap = rules.orthofinder.output.protmap,
     mci     = rules.orthofinder.output.mci_output,
-    annots  = rules.combine_annots.output.annots
+    annots  = rules.combine_annots.output.annots,
+    tree    = rules.fasttree_wrapper.output.tree
   output:
+    iscore      = "%s/tsne/iscore" % __PANALYSIS_OUTDIR__,
+    issc        = "%s/tsne/issinglecopy" % __PANALYSIS_OUTDIR__,
     ngenes      = "%s/tsne/ngenes" % __PANALYSIS_OUTDIR__,
     nspecies    = "%s/tsne/nspecies" % __PANALYSIS_OUTDIR__,
     annotscores = "%s/tsne/annotscores" % __PANALYSIS_OUTDIR__,
     nfunctions  = "%s/tsne/nfunctions" % __PANALYSIS_OUTDIR__,
-    nannotgenes = "%s/tsne/nannotgenes" % __PANALYSIS_OUTDIR__
+    nannotgenes = "%s/tsne/nannotgenes" % __PANALYSIS_OUTDIR__,
+    coretree    = "%s/tsne/coretree" % __PANALYSIS_OUTDIR__,
+    specifictree = "%s/tsne/specifictree" % __PANALYSIS_OUTDIR__
   params:
     install_dir = INSTALL_DIR,
     rule_outdir = __PANALYSIS_OUTDIR__
   threads: 2
   shell: """
     mkdir -p {params.rule_outdir}/tsne
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.iscore} isCore
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.issc} isSingleCopy
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.ngenes} nGenes
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.nspecies} nSpecies
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.annotscores} annotScores {input.annots}
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.nfunctions} nFunctions {input.annots}
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.nannotgenes} nAnnotGenes {input.annots}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.coretree} coreNode {input.tree}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 GetClusterFeatures {input.protmap} {input.mci} {output.specifictree} specificNode {input.tree}
   """
 
 
@@ -60,6 +84,15 @@ rule tsne_plot:
   shell: """
     Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R raw {input.tsne_binary} {output.tsne_binary}
     Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R raw {input.tsne_count} {output.tsne_count}
+
+    Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R intensity {input.tsne_binary} {output.tsne_binary}.nGenes.pdf {rules.cluster_features.output.ngenes}
+    Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R intensity {input.tsne_binary} {output.tsne_binary}.nSpecies.pdf {rules.cluster_features.output.nspecies}
+    Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R intensity {input.tsne_binary} {output.tsne_binary}.annotScores.pdf {rules.cluster_features.output.annotscores}
+
+    Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R labels {input.tsne_binary} {output.tsne_binary}.isCore.pdf {rules.cluster_features.output.iscore}
+    Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R labels {input.tsne_binary} {output.tsne_binary}.isSingleCopy.pdf {rules.cluster_features.output.issc}
+    Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R labels {input.tsne_binary} {output.tsne_binary}.coreNode.pdf {rules.cluster_features.output.coretree}
+    Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R labels {input.tsne_binary} {output.tsne_binary}.specificNode.pdf {rules.cluster_features.output.specifictree}
   """
 
 ###############################################################################
@@ -146,12 +179,12 @@ rule validate_clusters:
     protmap = rules.orthofinder.output.protmap,
     annots  = rules.combine_annots.output.annots
   output:
-    scores = "%s/annotation_validation/scores" % __PANALYSIS_OUTDIR__
+    scores = "%s/annotations/validationScores" % __PANALYSIS_OUTDIR__
   params:
     install_dir = INSTALL_DIR,
     rule_outdir = __PANALYSIS_OUTDIR__
   shell: """
-    mkdir -p {params.rule_outdir}/annotation_validation
+    mkdir -p {params.rule_outdir}/annotations
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 ValidateClustersWithAnnots {input.protmap} {input.clust} {input.annots} {output.scores}
   """
 
@@ -167,6 +200,23 @@ rule validate_clusters_plot:
     rule_outdir = __PANALYSIS_OUTDIR__
   shell: """
     touch {output.plot}
+  """
+
+###############################################################################
+
+rule get_cluster_annotations:
+  input:
+    clust   = rules.orthofinder.output.mci_output,
+    protmap = rules.orthofinder.output.protmap,
+    annots  = rules.combine_annots.output.annots
+  output:
+    annots = "%s/annotations/cluster_annotations.tsv" % __PANALYSIS_OUTDIR__
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  shell: """
+    mkdir -p {params.rule_outdir}/annotations
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar --annot-idfield 4 --annot-protfield 0 --annot-descfield 5 getclusterAnnots {input.protmap} {input.clust} {input.annots} {output.annots}
   """
 
 ###############################################################################

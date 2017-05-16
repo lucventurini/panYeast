@@ -21,6 +21,9 @@ object mainClass {
                 "ValidateClustersWithAnnots" -> ValidateClustersWithAnnots,
                 "GetPanSpecies"    -> GetPanSpecies,
                 "GetClusterFeatures" -> GetClusterFeatures,
+                "PanCoreEnrichments" -> PanCoreEnrichments,
+                "GetClusterAnnots" -> GetClusterAnnots,
+                "GetPan"           -> GetPan,
                 "test"             -> Test).map{ case (k,v) => (k.toLowerCase, v) }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -84,6 +87,19 @@ object mainClass {
         Annotations.setDescField(value.toInt)
         processGlobalOptions(tail)
       }
+      case "--alpha" :: value :: tail => {
+        Debug.message("Setting alpha level to %s".format(value))
+        Statistics.setAlpha(value.toDouble)
+      }
+
+      case "--tsne-perplexity" :: value ::tail => {
+        Debug.message("Setting TSNE perplexity to %s".format(value))
+        TSNEUtils.setPerplexity(value.toDouble)
+      }
+      case "--tsne-maxiter" :: value ::tail => {
+        Debug.message("Setting TSNE maximum iterations to %s".format(value))
+        TSNEUtils.setMaxIter(value.toInt)
+      }
 
       case option :: tail => {
         Utils.error("Unknown Option '%s'".format(option))
@@ -119,7 +135,7 @@ object mainClass {
     println("")
     println("Usage: panalysis [global options] <action>")
     println("  Global options:")
-    println("    -t|--threads <nthreads>: Number of threads to use (may not be used depending upon task)")
+    println("    -t|--threads <nthreads>: Number of threads to use (may not be used depending upon task, also doesn't really seem to work...)")
     println("    -d|--debug: Enable debug messages (Default: %s)".format(Debug.enabled.toString))
     println("    -s|--silent: Do not produce any output except normal program output")
     println("    --core-range <lower> <upper>: The percentage of genomes in a set the cluster must be in for it to be a core gene (Default: [%f,%f])".format(Clustering.coreRange.min, Clustering.coreRange.max))
@@ -128,6 +144,9 @@ object mainClass {
     println("    --annot-idfield <value>: When loading an annotation file, use column <value> as the annotation id (Default %d)".format(Annotations.idField))
     println("    --annot-protfield <value>: When loading an annotation file, use column <value> as the protein name (Default %d)".format(Annotations.protField))
     println("    --annot-descfield <value>: When loading an annotation file, use column <value> as the description field (Default %d)".format(Annotations.descField))
+    println("    --alpha <value>: For statistical tests, use alpha level of <value> (Default: %f)".format(Statistics.alpha))
+    println("    --tsne-perplexity <value>: Set TSNE perplexity to <value> (Default %f)".format(TSNEUtils.perplexity))
+    println("    --tsne-maxiter <value>: Set the maximum number of TSNE iterations to run to <value> (Default %d)".format(TSNEUtils.maxIter))
     println("")
     println("Actions")
     ops.keys.foreach{ k =>

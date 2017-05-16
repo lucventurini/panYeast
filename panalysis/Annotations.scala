@@ -6,14 +6,16 @@ package panalysis {
     def ==(that: AnnotationEntry) = { this.id == that.id }
 
     def equals(that: AnnotationEntry) = { this == that }
+
+    override def hashCode = this.id.hashCode
   }
 
   class Annotations(annotations: Array[(Int,Protein,AnnotationEntry)])  {
 
       // Group by protein
-    val gp = annotations.groupBy(_._2)
+    val gp = annotations.groupBy(_._2.toString)
       // Index annotations by protein name
-    val pa = gp.map{ case (k,v) => (k, v.map( _._3).distinct) }
+    val pa = gp.map{ case (k,v) => (k.toString, v.map(_._3).distinct) }
       // Index annotations by proteinID
     val ia = gp.map{ case (k,v) => (v(0)._1, v.map( _._3).distinct) }
 

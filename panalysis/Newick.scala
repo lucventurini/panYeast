@@ -13,6 +13,11 @@ import scala.Console
 
 object Newick {
 
+  def readFile(treeFile: String): Array[Newick.Tree] = {
+    Utils.openRead(treeFile).getLines.mkString("").split(';').filter(x => x.length > 0).map(t => Newick.Tree.fromString(t + ';'))
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
 
   case class Node(id: Int, name: String, annots: Map[String,String], length: Double, children: Array[Int], leaves: Array[Int], parent: Int) {
     def isLeaf = {
@@ -97,6 +102,10 @@ object Newick {
       this.nodes(nodeID).name
     }
 
+    def getNodeLeaves(nodeID: Int) = if (this.nodes(nodeID).leaves.length == 0) { Array(nodeID) } else { this.nodes(nodeID).leaves }
+
+    def getNodeLeafNames(nodeID: Int) = this.getNodeLeaves(nodeID).map(this.getNodeName)
+
     def getNewickNodeName(nodeID: Int) = {
       this.nodes(nodeID).getNewickName
     }
@@ -175,27 +184,25 @@ object Newick {
     /////////////////////////////////////////////////////////////////////////////
 
       def topologicalSorting = {
-        var status = Array.fill(this.nodes.length)(0)
-        @tailrec def topologicalSortingHelper(arr: Array[Int], nodeID: Int): Array[Int] = {
-          status(nodeID) match {
-            case it if 0 until this.nodes(nodeID).children.length-1 contains it => {
-              Debug.message("Going to child %s -> %s".format(this.nodes(nodeID).name, this.nodes(this.nodes(nodeID).children(status(nodeID))).name))
-              topologicalSortingHelper(arr :+ this.nodes(nodeID).children(status(nodeID)), this.nodes(nodeID).children(status(nodeID)))
-            }
-            case _ => {
+        def topologicalSortingHelperUnvisitedChildren(visited: Set[Int], children: Array[Int]) = children.filter(!visited.contains(_))
+
+        @tailrec def topologicalSortingHelper(arr: Array[Int], nodeID: Int, visited: Set[Int]): Array[Int] = {
+          val possibleChildren = topologicalSortingHelperUnvisitedChildren(visited, this.nodes(nodeID).children)
+          possibleChildren.length match {
+            case 0 => {
               this.nodes(nodeID).parent match {
                 case -1 => arr
-                case _  => {
-                  Debug.message("Going to parent %s -> %s".format(this.nodes(nodeID).name, this.nodes(this.nodes(nodeID).parent).name))
-                  status(this.nodes(nodeID).parent) = status(this.nodes(nodeID).parent) + 1
-                  topologicalSortingHelper(arr, this.nodes(nodeID).parent)
-                }
+                case _  => topologicalSortingHelper(arr, this.nodes(nodeID).parent, visited + nodeID)
               }
+            }
+            case _ => {
+              val nextChild = possibleChildren.head
+              topologicalSortingHelper(arr :+ nextChild, nextChild, visited + nextChild)
             }
           }
         }
 
-        topologicalSortingHelper(Array(this.root), this.root)
+        topologicalSortingHelper(Array(this.root), this.root, Set.empty[Int])
       }
 
       /////////////////////////////////////////////////////////////////////////////

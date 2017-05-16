@@ -7,11 +7,14 @@ object GetClusterFeatures extends ActionObject {
   override val description = "Get a feature for each cluster"
 
   val features = Map( "isCore"   -> featureIsCoreW _,
+                      "isSingleCopy" -> featureIsSingleCopyW _,
                       "nGenes"   -> featureNGenesW _,
                       "nSpecies" -> featureNSpeciesW _,
                       "annotScores" -> featureAnnotScoresW _,
                       "nFunctions" -> featureNFunctionsW _,
-                      "nAnnotGenes" -> featureNAnnotGenesW _
+                      "nAnnotGenes" -> featureNAnnotGenesW _,
+                      "coreNode"    -> featureCoreNodeW _,
+                      "specificNode" -> featureSpecificNodeW _
                     ).map{ case (k,v) => (k.toLowerCase, v) }
 
   override def main(args: Array[String]) = {
@@ -37,28 +40,34 @@ object GetClusterFeatures extends ActionObject {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  def featureIsCore(args: Array[String], clustering: Clustering)  = { clustering.clusters.map(c => c.isCore(clustering.protMap.taxa.length)) }
-  def featureIsCoreW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = featureIsCore(args, clustering).foreach(v => outfd.write("%d\n".format(v)))
+  def featureIsCoreW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = clustering.featureIsCore.foreach(v => outfd.write("%s\n".format( if (v == 1) "Core" else "Accessory")))
+
+  def featureIsSingleCopyW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = clustering.featureIsSingleCopy.foreach(v => outfd.write("%s\n".format(if (v == 1) "SC" else "Not SC")))
 
 
-  def featureNGenes(args: Array[String], clustering: Clustering) = { clustering.clusters.map(c => c.cluster.length) }
-  def featureNGenesW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = featureNGenes(args, clustering).foreach(v => outfd.write("%d\n".format(v)))
+  def featureNGenesW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = clustering.featureNGenes.foreach(v => outfd.write("%d\n".format(v)))
 
 
-  def featureNSpecies(args: Array[String], clustering: Clustering) = { clustering.paraClusters.map(c => c.nNonEmptyTaxa) }
-  def featureNSpeciesW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = featureNSpecies(args, clustering).foreach(v => outfd.write("%d\n".format(v)))
+  def featureNSpeciesW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = clustering.featureNSpecies.foreach(v => outfd.write("%d\n".format(v)))
 
 
-  def featureAnnotScores(args: Array[String], clustering: Clustering) = { ValidateClustersWithAnnots.clusterScores(clustering, Annotations(args(0), clustering.protMap)).map(x => x._6) }
-  def featureAnnotScoresW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = featureAnnotScores(args, clustering).foreach(v => outfd.write("%f\n".format(v)))
+  def featureAnnotScoresW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = clustering.featureAnnotScores(Annotations(args(0), clustering.protMap)).foreach(v => outfd.write("%f\n".format(v)))
 
 
-  def featureNFunctions(args: Array[String], clustering: Clustering) = { ValidateClustersWithAnnots.clusterScores(clustering, Annotations(args(0), clustering.protMap)).map(x => x._5) }
-  def featureNFunctionsW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = featureNFunctions(args, clustering).foreach(v => outfd.write("%d\n".format(v)))
+  def featureNFunctionsW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = clustering.featureNFunctions(Annotations(args(0), clustering.protMap)).foreach(v => outfd.write("%d\n".format(v)))
 
-  def featureNAnnotGenes(args: Array[String], clustering: Clustering) = { ValidateClustersWithAnnots.clusterScores(clustering, Annotations(args(0), clustering.protMap)).map(x => x._4) }
-  def featureNAnnotGenesW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = featureNAnnotGenes(args, clustering).foreach(v => outfd.write("%d\n".format(v)))
-  
+  def featureNAnnotGenesW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = clustering.featureNAnnotGenes(Annotations(args(0), clustering.protMap)).foreach(v => outfd.write("%d\n".format(v)))
+
+  def featureCoreNodeW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = {
+    val tree = Newick.readFile(args(0))(0)
+    clustering.featureCoreNode(tree).foreach(v => outfd.write("%s\n".format(tree.getNodeName(v))))
+  }
+
+  def featureSpecificNodeW(args: Array[String], clustering: Clustering, outfd: BufferedWriter) = {
+    val tree = Newick.readFile(args(0))(0)
+    clustering.featureSpecificNode(tree).foreach(v => outfd.write("%s\n".format( if (v > -1) tree.getNodeName(v) else "NotSpecific")))
+  }
+
 
   /////////////////////////////////////////////////////////////////////////////
 

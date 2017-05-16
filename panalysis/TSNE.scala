@@ -1,8 +1,5 @@
 package panalysis {
 
-import com.jujutsu.tsne.barneshut.ParallelBHTsne;
-import com.jujutsu.utils.MatrixOps;
-
 object TSNE extends ActionObject {
 
   override val description = "Perform a TSNE for each gene cluster"
@@ -12,6 +9,7 @@ object TSNE extends ActionObject {
     val protMapFile    = args(1)
     val clusteringFile = args(2)
     val outFile        = args(3)
+    val outDims        = if (args.length > 4) args(4).toInt else 2
 
     val protMap     = ProtMap(protMapFile)
     val intClusters = MCIReader.readClustering(clusteringFile)._3
@@ -24,36 +22,24 @@ object TSNE extends ActionObject {
       case "speciesCount"  => clustering.tsneMatrixParalogCounts.transpose
     }
 
-    //val isCore = clustering.getCoreLabels.map(x => x.toDouble).toArray
-    //val counts = clustering.getCountLabels.map(x => x.toDouble).toArray
-    //val labels = Array(isCore, counts).transpose
-    val result = run(matrix)
+    val result = TSNEUtils.run(matrix, outDims)
 
-    //Utils.doubleMatrixToFile(Utils.hcatMatrix(result,labels), outFile, "\t")
     Utils.doubleMatrixToFile(result, outFile, "\t")
-
     
   }
 
   /////////////////////////////////////////////////////////////////////////////
 
-  def run(matrix: Array[Array[Double]]) = {
-    val initialDims = matrix(0).length
-    val perplexity  = 20.0
-    val maxIter     = 1000
-    val tsne        = new ParallelBHTsne()
-
-    val result = tsne.tsne(matrix, 2, initialDims, perplexity, maxIter)
-    //println(MatrixOps.doubleArrayToPrintString(result, ", "))
-    result
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
-
   override def usage = {
-    println("tsne <action> <protMapFile> <clusteringFile> <outFile>")
+    println("tsne <action> <protMapFile> <clusteringFile> <outFile> [outDims]")
     println("")
     println("  action : binary | count | speciesBinary | speciesCount")
+    println("  protMapFile: Protein map produced e.g. by orthofinder")
+    println("  clusteringFile: MCL clustering file")
+    println("  outFile: output file, - for stdout")
+    println("  outDims: The number of dimensions to output (Default: 2)")
+  
+   
   }
 }
 

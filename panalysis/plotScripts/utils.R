@@ -1,1 +1,1 @@
-printf <- function(...) invisible(print(sprintf(...)))
+printf <- function(...) invisible(cat(sprintf(...)))
