@@ -35,9 +35,10 @@ rule orthofinder_diamond_mkdb:
   params:
     rule_outdir = "%s" % __ORTHOFINDER_OUTDIR__,
     orthofinder_params = tconfig["orthofinder_blast_params"]
+  conda: "%s/conda_envs/orthofinder.yaml" % __PIPELINE_COMPONENTS__
   shell: """
     date +"%s" > {params.rule_outdir}/mkdb_start_time
-    dorthofinder.py -f {params.rule_outdir}/input {params.orthofinder_params} -op --constOut \
+    orthofinder-dl.py -f {params.rule_outdir}/input {params.orthofinder_params} -op --constOut \
       | tee {params.rule_outdir}/dorthofinder.f.log \
       | grep "diamond blastp\|blastp -outfmt" \
       > {output.diamond_cmds}
@@ -56,10 +57,10 @@ rule orthofinder_diamond:
     rule_outdir = "%s" % __ORTHOFINDER_OUTDIR__,
     basch = "%s/pipeline_components/utils/bascheduler.sh" % INSTALL_DIR
   threads: 20
+  conda: "%s/conda_envs/orthofinder.yaml" % __PIPELINE_COMPONENTS__
   shell: """
-    source {params.basch}
     date +"%s" > {params.rule_outdir}/blast_start_time
-    baschf {input.diamond_cmds} {threads}
+    {params.basch} {input.diamond_cmds} {threads}
     cp {input.diamond_cmds} {output.diamond_completed}
     date +"%s" > {params.rule_outdir}/blast_end_time
   """
@@ -73,6 +74,7 @@ rule orthofinder_mcl:
     sequenceids = rules.orthofinder_diamond_mkdb.output.sequenceids,
     speciesids  = rules.orthofinder_diamond_mkdb.output.speciesids
   output:
+    mci_input_pairs = "%s/input/Results/WorkingDirectory/network.pairs" % __ORTHOFINDER_OUTDIR__,
     mci_output = "%s/input/Results/WorkingDirectory/mci_output.mci" % __ORTHOFINDER_OUTDIR__,
     statistics = "%s/input/Results/WorkingDirectory/Statistics_Overall.csv" % __ORTHOFINDER_OUTDIR__
   threads: 10
@@ -80,9 +82,11 @@ rule orthofinder_mcl:
     blast_dir = "%s/input/Results/WorkingDirectory/" % __ORTHOFINDER_OUTDIR__,
     of_params = tconfig["orthofinder_mcl_params"],
     rule_outdir = "%s" % __ORTHOFINDER_OUTDIR__
+  conda: "%s/conda_envs/orthofinder.yaml" % __PIPELINE_COMPONENTS__
   shell: """
+    echo {params.of_params}
     date +"%s" > {params.rule_outdir}/mcl_start_time
-    dorthofinder.py -a {threads} -b {params.blast_dir} {params.of_params} -og --constOut
+    orthofinder-dl.py -a {threads} -b {params.blast_dir} {params.of_params} -og --constOut
     date +"%s" > {params.rule_outdir}/mcl_end_time
   """
 

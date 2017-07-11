@@ -9,17 +9,24 @@ rule augustus_gff:
     gff = "%s/augustus_gff.{asm}.gff" % __AUGUSTUS_OUTDIR__
   threads: 4
   params:
-    augustus_species = tconfig["augustus_species"],
+    augustus_species = lambda wildcards: config["data"][wildcards.asm]["augustus_species"] if "augustus_species" in config["data"][wildcards.asm] else tconfig["augustus_species"],
     augustus_params  = tconfig["augustus_params"],
     rule_outdir = __AUGUSTUS_OUTDIR__
+  conda: "%s/conda_envs/augustus.yaml" % __PIPELINE_COMPONENTS__
   benchmark: "%s/augustus_gff.{asm}" % __LOGS_OUTDIR__
   shell: """
+    augustusspecies="{params.augustus_species}"
+    if [ -e '{params.augustus_species}' ]; then
+      cp -r '{params.augustus_species}' "$AUGUSTUS_CONFIG_PATH/species/"
+      augustusspecies=`basename $augustusspecies`
+    fi
+    which augustus
     mkdir -p {params.rule_outdir}
     augustus {params.augustus_params} \
              --gff3=on \
              --genemodel=complete \
              --strand=both  \
-             --species={params.augustus_species} \
+             --species=$augustusspecies \
              {input.asm} \
       > {output.gff}
   """

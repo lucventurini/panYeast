@@ -11,6 +11,7 @@ rule braker_align_gen_index:
     index = "%s/aln.{asm}.idx" % __BRAKER_OUTDIR__
   params:
     rule_outdir = __BRAKER_OUTDIR__
+  conda: "%s/conda_envs/braker.yaml" % __PIPELINE_COMPONENTS__
   shell: """
     mkdir {params.rule_outdir}/aln.{wildcards.asm}.idx
     STAR --runMode genomeGenerate --genomeDir {output.index} --genomeFastaFiles {input.asm} 
@@ -30,6 +31,7 @@ rule braker_align:
   params:
     star_params = tconfig["star_params"],
     rule_outdir = __BRAKER_OUTDIR__
+  conda: "%s/conda_envs/braker.yaml" % __PIPELINE_COMPONENTS__
   shell: """
     STAR --twopassMode Basic --runThreadN {threads} {params.star_params} --genomeDir {input.index} --readFilesIn {input.rnaseq} --outFileNamePrefix {params.rule_outdir}/aln.{wildcards.asm}. --outSAMtype BAM SortedByCoordinate
     mv {params.rule_outdir}/aln.{wildcards.asm}.Aligned.sortedByCoord.out.bam {output.bam}
@@ -50,18 +52,21 @@ rule braker:
   params:
     rule_outdir = __BRAKER_OUTDIR__,
     braker_params = tconfig["braker_params"]
+  conda: "%s/conda_envs/braker.yaml" % __PIPELINE_COMPONENTS__
   shell: """
     echo "#######################"
     echo "#Attention: Deleting configuration for species {wildcards.asm}, predicted location is:"
-    loc="$(readlink -f `which augustus` | rev | cut -d/ -f1 --complement | rev)/../config/species/{wildcards.asm}"
-    echo "#$loc"
-    echo "#CHANGE in rule braker if incorrect
+    echo "$AUGUSTUS_CONFIG_PATH/config/species/{wildcards.asm}" 
+    echo "#CHANGE in rule braker if incorrect"
     echo "#######################"
-    rm -rf {params.rule_outdir}/braker/{wildcards.asm}
-    rm -rf "$(readlink -f `which augustus` | rev | cut -d/ -f1 --complement | rev)/../config/species/{wildcards.asm}"
+    rm -rf "{params.rule_outdir}/braker/{wildcards.asm}"
+    rm -rf "$AUGUSTUS_CONFIG_PATH/config/species/{wildcards.asm}"
+    which perl
+    mkdir -p {params.rule_outdir}/braker/{wildcards.asm}/errors
     braker.pl --cores {threads} \
-              --GENEMARK_PATH=`which gmes_petap.pl | rev | cut -d/ -f1 --complement | rev` \
+              --GENEMARK_PATH=`echo $GENEMARK_PATH | rev | cut -d/ -f1 --complement | rev` \
               --BAMTOOLS_PATH=`which bamtools | rev | cut -d/ -f1 --complement | rev` \
+              --SAMTOOLS_PATH=`which samtools` \
               --genome={input.asm} \
               --bam={input.bam} \
               --species={wildcards.asm} \

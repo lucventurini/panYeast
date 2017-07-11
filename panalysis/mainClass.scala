@@ -90,15 +90,18 @@ object mainClass {
       case "--alpha" :: value :: tail => {
         Debug.message("Setting alpha level to %s".format(value))
         Statistics.setAlpha(value.toDouble)
+        processGlobalOptions(tail)
       }
 
       case "--tsne-perplexity" :: value ::tail => {
         Debug.message("Setting TSNE perplexity to %s".format(value))
         TSNEUtils.setPerplexity(value.toDouble)
+        processGlobalOptions(tail)
       }
       case "--tsne-maxiter" :: value ::tail => {
         Debug.message("Setting TSNE maximum iterations to %s".format(value))
         TSNEUtils.setMaxIter(value.toInt)
+        processGlobalOptions(tail)
       }
 
       case option :: tail => {
@@ -149,7 +152,7 @@ object mainClass {
     println("    --tsne-maxiter <value>: Set the maximum number of TSNE iterations to run to <value> (Default %d)".format(TSNEUtils.maxIter))
     println("")
     println("Actions")
-    ops.keys.foreach{ k =>
+    ops.keys.toList.sorted.foreach{ k =>
       val action = ops(k)
       println("  %s%s%s -> %s".format(Console.BOLD, k, Console.RESET, action.description))
     }

@@ -46,8 +46,9 @@ rule generated_prots:
     asm = lambda wildcards: "%s/asm.%s.fa" % (__GIVEN_ASM_OUTDIR__, wildcards.asm)
   output:
     fa = "%s/generated_prot.{asm}.fa"% (__PROTS_OUTDIR__)
+  conda: "%s/conda_envs/gffread.yaml" % __PIPELINE_COMPONENTS__
   shell: """
-    gffread -y {output.fa}.orig -g {input.asm} {input.gff}
+    gffread -y "{output.fa}.orig" -g "{input.asm}" "{input.gff}"
     # Remove the proteins with STOP codons in the middle of the gene...
     sed -e 's/^>\([^ ]\+\).*/>\\1/' {output.fa}.orig \
      | tr '\n>' '\t\n' \

@@ -5,13 +5,15 @@ rule get_cluster_genes:
     protmap = rules.orthofinder.output.protmap,
     mci     = rules.orthofinder.output.mci_output
   output:
-    cluster_genes  = "%s/genes/cluster_genes" % __PANALYSIS_OUTDIR__,
+    cluster_genes       = "%s/genes/cluster_genes.tsv" % __PANALYSIS_OUTDIR__,
+    cluster_genes_flat  = "%s/genes/cluster_genes.flat" % __PANALYSIS_OUTDIR__
   params:
     install_dir = INSTALL_DIR,
     rule_outdir = __PANALYSIS_OUTDIR__
   shell: """
     mkdir -p {params.rule_outdir}/tsne
     java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar getClusterGenes {input.protmap} {input.mci} {output.cluster_genes}
+    java -Xms20G -jar {params.install_dir}/panalysis/panalysis.jar getClusterGenes {input.protmap} {input.mci} {output.cluster_genes_flat} flatFlag
   """
 
 ###############################################################################
@@ -81,6 +83,7 @@ rule tsne_plot:
     tsne_count  = "%s/tsne/tsne.count.pdf" % __PANALYSIS_OUTDIR__
   params:
     install_dir = INSTALL_DIR
+  conda: "%s/conda_envs/r.yaml"% __PIPELINE_COMPONENTS__
   shell: """
     Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R raw {input.tsne_binary} {output.tsne_binary}
     Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R raw {input.tsne_count} {output.tsne_count}
@@ -93,6 +96,30 @@ rule tsne_plot:
     Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R labels {input.tsne_binary} {output.tsne_binary}.isSingleCopy.pdf {rules.cluster_features.output.issc}
     Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R labels {input.tsne_binary} {output.tsne_binary}.coreNode.pdf {rules.cluster_features.output.coretree}
     Rscript {params.install_dir}/panalysis/plotScripts/tsneR.R labels {input.tsne_binary} {output.tsne_binary}.specificNode.pdf {rules.cluster_features.output.specifictree}
+  """
+
+###############################################################################
+
+rule cluster_plots:
+  input:
+    annotscores = rules.cluster_features.output.annotscores,
+    nfunctions  = rules.cluster_features.output.nfunctions,
+    ngenes      = rules.cluster_features.output.ngenes
+  output:
+    annotscores_vs_nfunctions = "%s/plots/annotscores_nfunctions.pdf" % __PANALYSIS_OUTDIR__,
+    annotscores_vs_ngenes     = "%s/plots/annotscores_ngenes.pdf" % __PANALYSIS_OUTDIR__
+  params:
+    install_dir = INSTALL_DIR,
+    rule_outdir = __PANALYSIS_OUTDIR__
+  conda: "%s/conda_envs/r.yaml"% __PIPELINE_COMPONENTS__
+  shell: """
+    mkdir -p {params.rule_outdir}
+    Rscript {params.install_dir}/panalysis/plotScripts/scatterplot.R plain {input.annotscores} {input.nfunctions} {output.annotscores_vs_nfunctions} "Score" "Number of Functions"
+    Rscript {params.install_dir}/panalysis/plotScripts/scatterplot.R hexbin {input.annotscores} {input.nfunctions} {output.annotscores_vs_nfunctions}.hexbin.pdf "Score" "Number of Functions"
+
+    Rscript {params.install_dir}/panalysis/plotScripts/scatterplot.R plain {input.annotscores} {input.ngenes} {output.annotscores_vs_ngenes} "Score" "Number of Genes"
+    Rscript {params.install_dir}/panalysis/plotScripts/scatterplot.R hexbin {input.annotscores} {input.ngenes} {output.annotscores_vs_ngenes}.hexbin.pdf "Score" "Number of Genes"
+
   """
 
 ###############################################################################

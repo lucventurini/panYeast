@@ -25,7 +25,7 @@ rule get_go_annots:
   output:
     goannots = "%s/go_annots.tsv" % __INTERPROSCAN_OUTDIR__
   shell: """
-awk 'BEGIN{{ FS = "\t"}}
+    awk 'BEGIN{{ FS = "\t"}}
      {{n = split($14,goterms,"|")
       if (n > 0) {{
         for (goterm in goterms) {{

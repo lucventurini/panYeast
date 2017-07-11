@@ -6,6 +6,7 @@ rule fasttree:
   params:
     rule_outdir = __FASTTREE_OUTDIR__,
     fasttree_params = tconfig["fasttree_params"]
+  conda: "%s/conda_envs/fasttree.yaml" % __PIPELINE_COMPONENTS__
   shell: """
     mkdir -p {params.rule_outdir}
     FastTree -nt {params.fasttree_params} < {input.aln} > {output.tree}

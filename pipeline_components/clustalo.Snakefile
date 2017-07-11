@@ -9,7 +9,7 @@ rule merge_transcripts:
 
 ###############################################################################
 
-rule extract_orthagogue_clusters:
+rule extract_ortholog_clusters:
   input:
     clust   = rules.orthofinder.output.mci_output,
     protmap = rules.orthofinder.output.protmap,
@@ -30,27 +30,30 @@ rule extract_orthofinder_clusters:
 
 rule clustalo:
   input:
-    list = rules.extract_orthagogue_clusters.output.list
+    list = rules.extract_ortholog_clusters.output.list
   output:
-    list = "%s/alignments.list.tsv" % __CLUSTALO_OUTDIR__
+    list = "%s/alignments.list.tsv" % __CLUSTALO_OUTDIR__,
+    distmat_list = "%s/distmats.list.tsv" % __CLUSTALO_OUTDIR__
   threads: 20
   params:
     rule_outdir = __CLUSTALO_OUTDIR__,
     basch = "%s/pipeline_components/utils/bascheduler.sh" % INSTALL_DIR
+  conda: "%s/conda_envs/clustalo.yaml" % __PIPELINE_COMPONENTS__
   shell: """
     echo -en > {output.list}
     echo "" > {params.rule_outdir}/jobs_file
     mkdir -p {params.rule_outdir}/alignments
-    comands=()
-    source {params.basch}
     cat {input.list} | while read clusterline; do
       clusterid=`echo $clusterline | cut -d\  -f1`
       clusterfile=`echo $clusterline | cut -d\  -f3`
       alnfile="{params.rule_outdir}/alignments/alignment.$clusterid.fasta"
-      echo "clustalo -i $clusterfile --threads 1 -o $alnfile;" >> {params.rule_outdir}/jobs_file
+      distmatfile="{params.rule_outdir}/alignments/distmat.$clusterid.mat"
+      #echo "clustalo -i $clusterfile --threads 1 -o $alnfile --distmat-out $distmatfile" >> {params.rule_outdir}/jobs_file
+      echo "clustalo -i $clusterfile --threads 1 -o $alnfile >> {params.rule_outdir}/jobs_file" >> {params.rule_outdir}/jobs_file
       echo -e "$alnfile" >> {output.list}
+      echo -e "$distmatfile" >> {output.distmat_list}
     done
-    baschf {params.rule_outdir}/jobs_file {threads}
+    {params.basch} {params.rule_outdir}/jobs_file {threads}
   """
 
 ###############################################################################

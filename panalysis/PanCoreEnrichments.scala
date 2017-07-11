@@ -31,7 +31,18 @@ object PanCoreEnrichments extends ActionObject {
       c.cluster.map(_.toString).filter( annots.pa contains _).map(annots.pa).flatten.distinct.map(a => (cid, a))
     }.flatten.groupBy(_._2).mapValues( v => v.map(_._1).toSet)
 
-    val enrichments = clustering.featureSpecificNode(tree).zipWithIndex.groupBy(_._1).map{ case (k, v) => (k,v.map(_._2))}.filter{ case (k,v) => k >= 0}.map{ case (nodeID, clusterIDs) =>
+    val groups = tree.getNodes.indices.map{ nodeID =>
+      val characterization = clustering.getTaxaSubsetCoreAccSpecific(tree.getNodeLeafNames(nodeID))
+      val core     = characterization.filter{case (id, isc, isa, iss) => isc}.map(_._1)
+      val acc      = characterization.filter{case (id, isc, isa, iss) => isa}.map(_._1)
+      val specific = characterization.filter{case (id, isc, isa, iss) => iss}.map(_._1)
+
+      Array((nodeID, "core", core), (nodeID, "acc", acc), (nodeID, "specific", specific))
+    }.flatten
+
+    //val enrichments = clustering.featureSpecificNode(tree).zipWithIndex.groupBy(_._1).map{ case (k, v) => (k,v.map(_._2))}.filter{ case (k,v) => k >= 0}.map{ case (nodeID, clusterIDs) =>
+
+    val enrichments = groups.map{ case (nodeID, groupType, clusterIDs) =>
 
       val clusterAnnotations = clusterIDs.map(i => clustering.clusters(i).cluster).flatten.filter( annots.pa contains _.toString).map( p=> annots.pa(p.toString)).flatten.distinct
       val foregroundClusters = clusterIDs.toSet
@@ -42,25 +53,24 @@ object PanCoreEnrichments extends ActionObject {
         (a, stats)
       }
 
-      (nodeID, tests)
-    }.map{ case (nodeID, tests) => tests.map{ case (annot, stats) => (nodeID, annot.id, annot.description, stats._1, stats._2, stats._3, stats._4, stats._6) } }.flatten.toArray
+      (nodeID,  groupType, tests)
+    }.map{ case (nodeID, groupType, tests) => tests.map{ case (annot, stats) => (nodeID, groupType, annot.id, annot.description, stats._1, stats._2, stats._3, stats._4, stats._6) } }.flatten.toArray
 
     val nodeIDs = enrichments.map(_._1)
-    val annotIDs = enrichments.map(_._2)
-    val annotDescriptions = enrichments.map(_._3)
-    val a = enrichments.map(_._4)
-    val b = enrichments.map(_._5)
-    val c = enrichments.map(_._6)
-    val d = enrichments.map(_._7)
-
-    val pvals = enrichments.map(_._8)
+    val groupTypes = enrichments.map(_._2)
+    val annotIDs = enrichments.map(_._3)
+    val annotDescriptions = enrichments.map(_._4)
+    val a = enrichments.map(_._5)
+    val b = enrichments.map(_._6)
+    val c = enrichments.map(_._7)
+    val d = enrichments.map(_._8)
+    val pvals = enrichments.map(_._9)
     val qvals = Statistics.fdr_bh(pvals)
 
     val outfd = Utils.openWrite(outFile)
-    outfd.write("#nodeID\tnodeName\tannotID\tannotDescription\ta\tb\tc\td\tpval\tqval\n")
-    //nodeIDs.indices.filter(i => qvals(i) < Statistics.alpha).foreach{ i =>
-    nodeIDs.indices.foreach{ i =>
-      outfd.write("%d\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%f\n".format(nodeIDs(i), tree.getNodeName(nodeIDs(i)), annotIDs(i), annotDescriptions(i), a(i), b(i), c(i), d(i), pvals(i), qvals(i)))
+    outfd.write("#nodeID\tnodeName\tgroupType\tannotID\tannotDescription\ta\tb\tc\td\tpval\tqval\n")
+    nodeIDs.indices.filter(i => qvals(i) < Statistics.alpha).foreach{ i =>
+      outfd.write("%d\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%f\t%f\n".format(nodeIDs(i), tree.getNodeName(nodeIDs(i)), groupTypes(i), annotIDs(i), annotDescriptions(i), a(i), b(i), c(i), d(i), pvals(i), qvals(i)))
     }
     outfd.close()
   }

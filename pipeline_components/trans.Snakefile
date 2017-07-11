@@ -63,6 +63,7 @@ rule gen_trans:
   output:
     trans_fasta = "%s/generated_trans.{asm}.fa" % __TRANS_OUTDIR__
   threads: 1
+  conda: "%s/conda_envs/gffread.yaml" % __PIPELINE_COMPONENTS__
   shell: """
     gffread -w {output.trans_fasta}.pre -g {input.asm} {input.gff}
     awk '{{ if (substr($0,1,1) == ">") {{ split($0,a," "); print a[1]}} else {{ print $0 }}}}' {output.trans_fasta}.pre > {output.trans_fasta}

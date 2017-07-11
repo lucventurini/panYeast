@@ -1,4 +1,6 @@
 library(RColorBrewer)
+library(hexbin)
+library(scales)
 
 ###############################################################################
 
@@ -57,3 +59,16 @@ tsnePlot <- function(D, colors, outFile, pch=21, labelLegend=FALSE, lls=NULL, ll
 
 
 ###############################################################################
+
+scatterPlot <- function(X, Y, ...) {
+  plot(X, Y, col=alpha("black", 0.2), ...)
+
+}
+
+###############################################################################
+
+hexbinPlot <- function(X,Y, ...) {
+  df <- data.frame(x=X, y=Y)
+  h <- hexbin(df)
+  plot(h, ...)
+}

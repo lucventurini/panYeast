@@ -26,7 +26,18 @@ tconfig={
 
     # Phylogenetic tree options
   #"outgroup_species : "", # Which organism to use as an outgroup?
-  "fasttree_params" : "-fastest -gtr"
+  "fasttree_params" : "-fastest -gtr",
+
+  "pathogenicity_databases" : { "VFDB": "/home/thiesgehrmann/data/datasets/VFDB/VFDB_setB_pro.fas",
+                               "PHIbase": "/home/thiesgehrmann/data/datasets/PHIbase/phi_accessions.fa"},
+
+  "dbcan_evalue" : "1e-17",
+  "dbcan_coverage" : "0.45",
+
+  "annot_cp450" : True,
+  "annot_tf" : True,
+  "annot_sec_met" : False,
+  "annot_cazy" : True,
   
 }
 
@@ -54,14 +65,19 @@ __TRANS_OUTDIR__      = "%s/trans" % __RUN_DIR__
 #__MCL_OUTDIR__        = "%s/mcl" % __RUN_DIR__
 
 __INTERPROSCAN_OUTDIR__ = "%s/interproscan" % __RUN_DIR__
+__DBCAN_OUTDIR__        = "%s/dbcan" % __RUN_DIR__
+__ANNOTS_OUTDIR__       = "%s/annots" % __RUN_DIR__
 
 __ORTHOFINDER_OUTDIR__ = "%s/orthofinder" % __RUN_DIR__
+
+__SYNTENY_OUTDIR__ = "%s/synteny" % __RUN_DIR__
+
+__PATHOGENIC_GENES_OUTPUT__ = "%s/pathogenic_genes" % __RUN_DIR__
 
 __CLUSTALO_OUTDIR__  = "%s/clustalo" % __RUN_DIR__
 __FASTTREE_OUTDIR__  = "%s/fasttree" % __RUN_DIR__
 
 __PANALYSIS_OUTDIR__  = "%s/panalysis" % __RUN_DIR__
-
 
 __EXTRACT_OUTDIR__ = "%s/extract" % __RUN_DIR__
 
@@ -85,6 +101,7 @@ include: "%s/asm.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/prots.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/trans.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/interproscan.Snakefile" % __PIPELINE_COMPONENTS__
+include: "%s/dbcan.Snakefile" % __PIPELINE_COMPONENTS__
 
 #include: "%s/diamond.Snakefile" % __PIPELINE_COMPONENTS__
 #include: "%s/orthagogue.Snakefile" %  __PIPELINE_COMPONENTS__
@@ -96,5 +113,9 @@ include: "%s/clustalo.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/fasttree.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/panalysis.Snakefile" % __PIPELINE_COMPONENTS__
 
+include: "%s/annotations.Snakefile" % __PIPELINE_COMPONENTS__
 
+include: "%s/synteny.Snakefile" % __PIPELINE_COMPONENTS__
+
+include: "%s/pathogenic_genes.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/extract.Snakefile"% __PIPELINE_COMPONENTS__
