@@ -31,6 +31,8 @@ tconfig={
   "pathogenicity_databases" : { "VFDB": "/home/thiesgehrmann/data/datasets/VFDB/VFDB_setB_pro.fas",
                                "PHIbase": "/home/thiesgehrmann/data/datasets/PHIbase/phi_accessions.fa"},
 
+  "busco_database" : "http://busco.ezlab.org/datasets/fungi_odb9.tar.gz",
+
   "dbcan_evalue" : "1e-17",
   "dbcan_coverage" : "0.45",
 
@@ -64,6 +66,7 @@ __TRANS_OUTDIR__      = "%s/trans" % __RUN_DIR__
 #__ORTHAGOGUE_OUTDIR__ = "%s/orthagogue" % __RUN_DIR__
 #__MCL_OUTDIR__        = "%s/mcl" % __RUN_DIR__
 
+__BUSCO_OUTDIR__        = "%s/busco" % __RUN_DIR__
 __INTERPROSCAN_OUTDIR__ = "%s/interproscan" % __RUN_DIR__
 __DBCAN_OUTDIR__        = "%s/dbcan" % __RUN_DIR__
 __ANNOTS_OUTDIR__       = "%s/annots" % __RUN_DIR__
@@ -114,6 +117,7 @@ include: "%s/fasttree.Snakefile" % __PIPELINE_COMPONENTS__
 include: "%s/panalysis.Snakefile" % __PIPELINE_COMPONENTS__
 
 include: "%s/annotations.Snakefile" % __PIPELINE_COMPONENTS__
+include: "%s/busco.Snakefile" % __PIPELINE_COMPONENTS__
 
 include: "%s/synteny.Snakefile" % __PIPELINE_COMPONENTS__
 

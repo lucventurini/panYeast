@@ -52,19 +52,41 @@ rule asm_stats:
   params:
     rule_outdir = __GFF_OUTDIR__
   shell: """
-    mkdir -p "{params.rule_outdir}/stats"
-
     ncontigs=`cat {input.asm} | grep '^>'  | wc -l`
-    size=`cat {input.asm} | sed -e 's/^>.*/\t/' | tr -d '\n' | tr '\t' '\n' | awk 'BEGIN{{SUM=0}}{{ SUM += length($0) }} END{{ print SUM}}'`
-    n50=`cat {input.asm} | sed -e 's/^>.*/\t/' | tr -d '\n' | tr '\t' '\n' | awk '{{ print length($0)}}' | sort -n | awk '{{len[i++]=$1;sum+=$1}} END {{for (j=0;j<i+1;j++) {{csum+=len[j]; if (csum>sum/2) {{print len[j];break}}}}}}'`
-    ngenes=`cat {input.gff} | grep -v "^#" | grep gene | wc -l`
-    avggenelength=`cat {input.gff} | grep -v "^#" | grep -i gene | awk 'BEGIN{{SUM=0;n=0}}{{ SUM+=($5 - $4); n++ }}END{{print (SUM/n)}} '`
-    avgtranscriptlength=`cat {input.gff} | grep -v "^#" | grep -i transcript | awk 'BEGIN{{SUM=0;n=0}}{{ SUM+=($5 - $4); n++ }}END{{print (SUM/n)}} '`
-    avgexonlength=`cat {input.gff} | grep -v "^#" | grep -i -e "\(CDS\|exon\)" | awk 'BEGIN{{SUM=0;n=0}}{{ SUM+=($5 - $4); n++ }}END{{print (SUM/n)}} '`
-    avgintronlength=`echo "scale=2; ($avgtranscriptlength - $avgexonlength)" | bc`
-    avgexonspergene=`cat {input.gff}| grep -v '^#' | grep -i -e '\(CDS\|exon\)' | awk -F 'arent=' '{{print $2}}' | uniq -c | sed -e 's/^\s\+//' | cut -d\  -f1 | awk 'BEGIN{{SUM=0;n=0}}{{ SUM+=$0; n++ }}END{{print (SUM/n)}} '`
+    echo $ncontigs
 
-    echo -en "{wildcards.asm}\t$ncontigs\t$size\t$n50\t$ngenes\t$avggenelength\t$avgtranscriptlength\t$avgexonlength\t$avgintronlength\t$avgexonspergene\n" > {output.stats}
+    size=`cat {input.asm} | sed -e 's/^>.*/\t/' | tr -d '\\n' | tr '\\t' '\\n' | awk 'BEGIN{{SUM=0}}{{ SUM += length($0) }} END{{ print SUM}}'`
+    echo $size
+
+    n50=`cat {input.asm} | sed -e 's/^>.*/\t/' | tr -d '\\n' | tr '\\t' '\\n' | awk '{{ print length($0)}}' | sort -n | awk '{{len[i++]=$1;sum+=$1}} END {{for (j=0;j<i+1;j++) {{csum+=len[j]; if (csum>sum/2) {{print len[j];break}}}}}}'`
+    echo "n50: $n50"
+
+    ngenes=`cat {input.gff} | grep -v "^#" | grep -e "[Gg]ene" | wc -l`
+    echo $ngenes
+
+    avggenelength=`cat {input.gff} | grep -v "^#" | grep -i gene | awk 'BEGIN{{SUM=0;n=0}}{{ SUM+=($5 - $4); n++ }}END{{print (SUM/n)}} '`
+    echo "$avggenelength"
+
+    avgtranscriptlength=`cat {input.gff} | grep -v "^#" | grep -i "\(transcript\|mRNA\)" | awk 'BEGIN{{SUM=0;n=0}}{{ SUM+=($5 - $4); n++ }}END{{print (SUM/n)}} '`
+
+    avgcdslength=`cat {input.gff}  | grep -v "^#" | awk -F$'\t' 'BEGIN{{SUM=0;n=1}}{{ if ($3 == "CDS"){{ SUM+=($5 - $4); n++ }}}}END{{if (n > 1){{n=n-1}}; print (SUM/n)}} '`
+    avgexonlength=`cat {input.gff} | grep -v "^#" | awk -F$'\t' 'BEGIN{{SUM=0;n=1}}{{ if ($3 == "exon"){{SUM+=($5 - $4); n++ }}}}END{{if (n > 1){{n=n-1}}; print (SUM/n)}} '`
+    if [ `echo $avgcdslength | cut -d. -f1` -gt `echo $avgexonlength | cut -d. -f1` ]; then
+      avgexonlength=$avgcdslength
+    fi
+
+
+    nexons=`cat {input.gff} | grep -v '^#' | awk '{{ if( ($3 == "exon")){{ print $0}}}}' | wc -l`
+    ncds=`cat {input.gff} | grep -v '^#' | awk '{{ if( ($3 == "CDS") ){{ print $0}}}}' | wc -l`
+    ncdsexons=$nexons
+    if [ $ncds -gt $nexons ]; then
+      ncdsexons=$ncds
+    fi
+    avgexonspergene=`echo "scale=2; $ncdsexons/$ngenes" | bc`
+
+    avgintronlength=`echo "scale=2; (($avgtranscriptlength - ($avgexonlength*$avgexonspergene))/($avgexonspergene-1))" | bc`
+
+    echo -en "{wildcards.asm}\t$ncontigs\t$size\t$n50\t$ngenes\t$avggenelength\t$avgtranscriptlength\t$avgexonlength\t$avgintronlength\t$avgexonspergene\\n" > {output.stats}
   """
 
 rule all_asm_stats:
