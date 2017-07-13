@@ -12,13 +12,22 @@ By stretching the definition of the pan-genome to any set of genomes, even with 
     /path/to/github/clone/gen_pipeline.sh data.json out_dir
 
  - orthology detection & phylogentic tree
+
     snakemake --use-conda --cores 10 -R pancore_tree
+
  - annotations
+
     snakemake --use-conda --cores 10 -R perform_annotations
+
  - Genome statistics
+
     snakemake --use-conda --cores 10 -R all_asm_stats
+
  - More...
+
     snakemake --use-conda --cores 10 -R all_gffs # Generate all GFF files (with augustus/BRAKER1)
+    snakemake --use-conda --cores 10 -R iadhore_ortholog_clusters # Link syntenic clusters to ortholog clusters
+    snakemake --use-conda --cores 10 -R panalysis # Perform various actions, such as a TSN-E plot of all genes, and validation of orthology clusters using functional annotations
     
  
 
