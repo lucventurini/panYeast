@@ -1,0 +1,9 @@
+channels:
+ - thiesgehrmann
+ - bioconda
+
+dependencies:
+ - orthofinder-dl
+ - diamond
+ - blast
+ - python=2.7

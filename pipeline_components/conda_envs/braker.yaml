@@ -1,0 +1,12 @@
+dependencies:
+ - braker1
+ - samtools
+ - bamtools
+ - augustus
+ - star
+ - perl-yaml
+ - perl-hash-merge
+ - perl-logger-simple
+ - perl-parallel-forkmanager
+ - perl-pathtools
+ - perl-scalar-util-numeric
