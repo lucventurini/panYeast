@@ -1,2 +1,6 @@
+channels:
+ - thiesgehrmann
+ - bioconda
 dependencies:
  - busco
+ - augustus

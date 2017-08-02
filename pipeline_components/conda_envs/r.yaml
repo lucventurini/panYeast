@@ -1,4 +1,9 @@
+channels:
+ - r
+ - bioconda
 dependencies:
  - r
- - r-colorbrewer
+ - r-rcolorbrewer
+ - r-hexbin
+ - r-scales
 

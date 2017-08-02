@@ -56,7 +56,7 @@ rule orthofinder_diamond:
   params:
     rule_outdir = "%s" % __ORTHOFINDER_OUTDIR__,
     basch = "%s/pipeline_components/utils/bascheduler.sh" % INSTALL_DIR
-  threads: 20
+  threads: 100
   conda: "%s/conda_envs/orthofinder.yaml" % __PIPELINE_COMPONENTS__
   shell: """
     date +"%s" > {params.rule_outdir}/blast_start_time

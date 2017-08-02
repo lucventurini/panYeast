@@ -51,7 +51,7 @@ if( "uconfig" in vars() ):
 # Output directories
 
 __PIPELINE_COMPONENTS__ = "%s/pipeline_components" % INSTALL_DIR
-__RUN_DIR__             = "%s/run/" % WORKDIR
+__RUN_DIR__             = "%s/run" % WORKDIR
 
 
 __AUGUSTUS_OUTDIR__   = "%s/augustus" % __RUN_DIR__
