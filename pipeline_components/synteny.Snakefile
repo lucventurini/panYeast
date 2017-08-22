@@ -1,6 +1,6 @@
 rule iadhore_blast_input:
   input:
-    pairs = rules.orthofinder_mcl.output.mci_input_pairs
+    pairs = rules.orthofinder_all.output.mci_input_pairs
   output:
     pairs = "%s/families.tsv" % __SYNTENY_OUTDIR__
   shell: """
@@ -53,7 +53,7 @@ rule iadhore_genome_input:
 rule iadhore_ini_input:
   input:
     genomes = expand("%s/lsts/lst.{asm}/lst" % __SYNTENY_OUTDIR__, asm=config["data"].keys()),
-    pairs   = rules.orthofinder_mcl.output.mci_input_pairs
+    pairs   = rules.orthofinder_all.output.mci_input_pairs
   output:
     ini = "%s/iadhore.ini" % __SYNTENY_OUTDIR__
   threads: 20
